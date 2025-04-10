@@ -1,17 +1,38 @@
 package org.example;
 
-//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
-// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
-public class Main {
-    public static void main(String[] args) {
-        //TIP Press <shortcut actionId="ShowIntentionActions"/> with your caret at the highlighted text
-        // to see how IntelliJ IDEA suggests fixing it.
-        System.out.printf("Hello and welcome!");
+import picocli.CommandLine;
+import picocli.CommandLine.Command;
+import picocli.CommandLine.Option;
+import picocli.CommandLine.Parameters;
 
-        for (int i = 1; i <= 5; i++) {
-            //TIP Press <shortcut actionId="Debug"/> to start debugging your code. We have set one <icon src="AllIcons.Debugger.Db_set_breakpoint"/> breakpoint
-            // for you, but you can always add more by pressing <shortcut actionId="ToggleLineBreakpoint"/>.
-            System.out.println("i = " + i);
-        }
+import java.util.List;
+import java.util.concurrent.Callable;
+
+@Command(name = "web-crawler", mixinStandardHelpOptions = true, version = "web-crawler 1.0",
+        description = "Provides a compact overview of the given website and linked websites by only listing the headings and the links.")
+class WebCrawler implements Callable<Integer> {
+
+    @Parameters(index = "0", description = "The url to start from")
+    private String url;
+
+    @Parameters(index = "1..*", description = "The domains to consider")
+    private List<String> domains;
+
+    @Option(names = {"-d", "--depth"}, description = "The depth of websites to crawl")
+    private int depth = 1;
+
+    // this example implements Callable, so parsing, error handling and handling user
+    // requests for usage help or version help can be done with one line of code.
+    public static void main(String... args) {
+        int exitCode = new CommandLine(new WebCrawler()).execute(args);
+        System.exit(exitCode);
+    }
+
+    @Override
+    public Integer call() throws Exception { // your business logic goes here...
+        System.out.printf("URL: %s\n", this.url);
+        System.out.printf("domains: %s\n", this.domains);
+        System.out.printf("depth: %s", this.depth);
+        return 0;
     }
 }
