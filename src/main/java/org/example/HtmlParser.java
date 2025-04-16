@@ -6,8 +6,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -50,18 +49,20 @@ public class HtmlParser {
         String indentation = "--".repeat(depth);
         if (!indentation.isEmpty()) indentation += ">";
 
-        try {
-            var host = new URL(url).getHost();
-            boolean validHost = domains.stream()
-                    .anyMatch(s -> host.toLowerCase().contains(s.toLowerCase()));
-            if (!validHost) return;
-        } catch (MalformedURLException e) {
-            print("\n%s is not a valid URL", url);
-            return;
+        if (depth > 0) {
+            try {
+                var host = URI.create(url).getHost();
+                boolean validHost = domains.stream()
+                        .anyMatch(s -> host.toLowerCase().contains(s.toLowerCase()));
+                if (!validHost) return;
+            } catch (IllegalArgumentException e) {
+                print("\n%s is not a valid URL", url);
+                return;
+            }
         }
 
 
-        print("\nAnalysing %s", url);
+        print("\nAnalyzing %s", url);
 
         Document doc;
         try {
@@ -77,7 +78,8 @@ public class HtmlParser {
 
         print("\n Found %d headings, %d links", headings.size(), links.size());
 
-        fileWriter.write(String.format("\n\n<br>%s link to <a>%s</a>\n", indentation, url));
+        if (depth > 0)
+            fileWriter.write(String.format("\n\n<br>%s link to <a>%s</a>\n", indentation, url));
 
         Pattern pattern = Pattern.compile("\\d+");
 
