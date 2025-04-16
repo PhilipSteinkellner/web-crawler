@@ -11,8 +11,6 @@ import java.util.concurrent.Callable;
         description = "Provides a compact overview of the given website and linked websites by only listing the headings and the links.")
 class WebCrawler implements Callable<Integer> {
 
-    private final HtmlParser htmlParser = new HtmlParser();
-
     @Parameters(index = "0", description = "The url to start from")
     private String url;
 
@@ -20,14 +18,22 @@ class WebCrawler implements Callable<Integer> {
     private List<String> domains;
 
     @Option(names = {"-d", "--depth"}, description = "The depth of websites to crawl")
-    private int depth = 1;
+    private int depth;
 
     @Override
     public Integer call() throws Exception {
-        System.out.printf("\nURL: %s", this.url);
-        System.out.printf("\ndomains: %s", this.domains);
-        System.out.printf("\ndepth: %s", this.depth);
-        this.htmlParser.listLinks(url);
+        FileWriter fileWriter = new FileWriter("report.md");
+
+        String content = String.format("URL: <a>%s</a>", url) +
+                String.format("\n<br>Domains: %s", String.join(", ", domains)) +
+                String.format("\n<br>Depth: <a>%d</a>", depth);
+
+        fileWriter.write(content);
+
+        HtmlParser htmlParser = new HtmlParser(domains, depth, fileWriter);
+
+        htmlParser.analyze(url, 0);
+
         return 0;
     }
 }

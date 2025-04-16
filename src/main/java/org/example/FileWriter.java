@@ -7,13 +7,14 @@ import java.nio.file.StandardOpenOption;
 
 public class FileWriter {
 
-    private final String fileName;
+    private final String filePath;
 
-    public FileWriter(String fileName) {
-        this.fileName = fileName;
+    public FileWriter(String filePath) throws IOException {
+        this.filePath = filePath;
+        Files.write(Paths.get(filePath), "".getBytes(), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
     }
 
     public void write(String content) throws IOException {
-        Files.write(Paths.get(this.fileName), content.getBytes(), StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+        Files.write(Paths.get(filePath), content.getBytes(), StandardOpenOption.CREATE, StandardOpenOption.APPEND);
     }
 }
