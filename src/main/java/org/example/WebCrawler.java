@@ -9,7 +9,7 @@ import java.util.concurrent.Callable;
 
 @Command(name = "web-crawler", mixinStandardHelpOptions = true, version = "web-crawler 1.0",
         description = "Provides a compact overview of the given website and linked websites by only listing the headings and the links.")
-class WebCrawler implements Callable<Integer> {
+public class WebCrawler implements Callable<Integer> {
 
     @Parameters(index = "0", description = "The url to start from")
     private String url;
