@@ -18,21 +18,22 @@ class WebCrawler implements Callable<Integer> {
     private List<String> domains;
 
     @Option(names = {"-d", "--depth"}, description = "The depth of websites to crawl")
-    private int depth;
+    private int depth = 0;
 
     @Override
     public Integer call() throws Exception {
         FileWriter fileWriter = new FileWriter("report.md");
 
-        String content = String.format("URL: <a>%s</a>", url) +
-                String.format("\n<br>Domains: %s", String.join(", ", domains)) +
-                String.format("\n<br>Depth: <a>%d</a>", depth);
+        String content = ("**Input Arguments**") +
+                String.format("\n- URL: <a>%s</a>", url) +
+                String.format("\n- Domains: %s", String.join(", ", domains)) +
+                String.format("\n- Depth: <a>%d</a>", depth);
 
         fileWriter.write(content);
 
-        HtmlParser htmlParser = new HtmlParser(domains, depth, fileWriter);
+        WebsiteAnalyzer websiteAnalyzer = new WebsiteAnalyzer(domains, depth, fileWriter);
 
-        htmlParser.analyze(url, 0);
+        websiteAnalyzer.analyze(url, 0);
 
         return 0;
     }
