@@ -41,6 +41,11 @@ public class WebsiteAnalyzer {
     private boolean checkHostValidity(String url) {
         try {
             var host = URI.create(url).getHost();
+            if (host == null) {
+                print("\n%s has no host component", url);
+                return false;
+            }
+
             return domains.stream()
                     .anyMatch(s -> host.toLowerCase().contains(s.toLowerCase()));
         } catch (IllegalArgumentException e) {
@@ -48,6 +53,7 @@ public class WebsiteAnalyzer {
             return false;
         }
     }
+
 
     public Document fetchAndParseWebsite(String url) {
         try {
