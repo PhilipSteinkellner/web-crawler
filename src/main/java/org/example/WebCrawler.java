@@ -15,23 +15,23 @@ public class WebCrawler implements Callable<Integer> {
     private String url;
 
     @Parameters(index = "1..*", description = "The domains to consider")
-    private List<String> domains;
+    private List<String> targetDomains;
 
-    @Option(names = {"-d", "--depth"}, description = "The depth of websites to crawl")
-    private int depth = 0;
+    @Option(names = {"-d", "--depth"}, description = "The maximum depth of websites to crawl")
+    private int maxDepth = 0; // Refactored: Removed static final and renamed to maxDepth
 
     @Override
     public Integer call() throws Exception {
-        FileWriter fileWriter = new FileWriter("report.md");
+        MarkdownFileWriter markdownFileWriter = new MarkdownFileWriter("report.md");
 
         String content = ("**Input Arguments**") +
-                String.format("\n- URL: <a>%s</a>", url) +
-                String.format("\n- Domains: %s", String.join(", ", domains)) +
-                String.format("\n- Depth: <a>%d</a>", depth);
+                String.format("%n- URL: <a>%s</a>", url) +
+                String.format("%n- Domains: %s", String.join(", ", targetDomains)) +
+                String.format("%n- Depth: <a>%d</a>", maxDepth);
 
-        fileWriter.write(content);
+        markdownFileWriter.write(content);
 
-        WebsiteAnalyzer websiteAnalyzer = new WebsiteAnalyzer(domains, depth, fileWriter);
+        WebsiteAnalyzer websiteAnalyzer = new WebsiteAnalyzer(targetDomains, maxDepth, markdownFileWriter);
 
         websiteAnalyzer.analyze(url, 0);
 

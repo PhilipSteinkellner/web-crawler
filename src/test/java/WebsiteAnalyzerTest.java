@@ -1,4 +1,4 @@
-import org.example.FileWriter;
+import org.example.MarkdownFileWriter;
 import org.example.WebsiteAnalyzer;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -15,13 +15,13 @@ import static org.mockito.Mockito.*;
 
 class WebsiteAnalyzerTest {
 
-    private FileWriter fileWriter;
+    private MarkdownFileWriter markdownFileWriter;
     private WebsiteAnalyzer analyzer;
 
     @BeforeEach
     void setUp() {
-        fileWriter = mock(FileWriter.class);
-        analyzer = new WebsiteAnalyzer(List.of("example.com"), 1, fileWriter);
+        markdownFileWriter = mock(MarkdownFileWriter.class);
+        analyzer = new WebsiteAnalyzer(List.of("example.com"), 1, markdownFileWriter);
     }
 
     @Test
@@ -33,14 +33,14 @@ class WebsiteAnalyzerTest {
 
         spyAnalyzer.analyze("https://example.com", 1);
 
-        verify(fileWriter, atLeastOnce()).write(contains("link to"));
+        verify(markdownFileWriter, atLeastOnce()).write(contains("link to"));
     }
 
     @Test
     void testAnalyze_skipsInvalidUrl() throws Exception {
         analyzer.analyze("ht!tp://invalid-url", 1);
         // Should not call fileWriter
-        verifyNoInteractions(fileWriter);
+        verifyNoInteractions(markdownFileWriter);
     }
 
     @Test
@@ -52,7 +52,7 @@ class WebsiteAnalyzerTest {
         spyAnalyzer.analyze("https://example.com", 1);
         spyAnalyzer.analyze("https://example.com", 1);
 
-        verify(fileWriter, times(1)).write(anyString());
+        verify(markdownFileWriter, times(1)).write(anyString());
     }
 
     @Test
@@ -62,7 +62,7 @@ class WebsiteAnalyzerTest {
 
         spyAnalyzer.analyze("https://example.com", 1);
 
-        verify(fileWriter).write(contains("broken link"));
+        verify(markdownFileWriter).write(contains("broken link"));
     }
 
     @Test
@@ -72,6 +72,6 @@ class WebsiteAnalyzerTest {
 
         analyzer.recordHeadings(headings, "-->");
 
-        verify(fileWriter).write(contains("## --> Heading"));
+        verify(markdownFileWriter).write(contains("## --> Heading"));
     }
 }

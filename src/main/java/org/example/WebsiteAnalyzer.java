@@ -20,17 +20,17 @@ public class WebsiteAnalyzer {
 
     private final List<String> domains;
     private final int maxDepth;
-    private final FileWriter fileWriter;
+    private final MarkdownFileWriter markdownFileWriter;
     private final Set<String> seenUrls = new HashSet<>();
 
-    public WebsiteAnalyzer(List<String> domains, int maxDepth, FileWriter fileWriter) {
+    public WebsiteAnalyzer(List<String> domains, int maxDepth, MarkdownFileWriter markdownFileWriter) {
         this.domains = domains;
         this.maxDepth = maxDepth;
-        this.fileWriter = fileWriter;
+        this.markdownFileWriter = markdownFileWriter;
     }
 
     private static void print(String msg, Object... args) {
-        System.out.printf((msg) + "%n", args);
+        System.out.printf("%s%n", String.format(msg, args));
     }
 
     private static <T> Predicate<T> distinctByKey(Function<? super T, ?> keyExtractor) {
@@ -63,7 +63,7 @@ public class WebsiteAnalyzer {
         }
     }
 
-    public void recordHeadings(Elements headings, String indentation) throws IOException {
+    public void recordHeadings(Elements headings, String markdownIndentation) throws IOException {
         Pattern pattern = Pattern.compile("\\d+");
 
         for (Element heading : headings) {
@@ -73,8 +73,8 @@ public class WebsiteAnalyzer {
                 int headingNumber = Integer.parseInt(matcher.group());
                 headingPrefix = headingPrefix.repeat(headingNumber);
             }
-            String line = String.format("\n%s %s %s", headingPrefix, indentation, heading.text());
-            fileWriter.write(line);
+            String line = String.format("%n%s %s %s", headingPrefix, markdownIndentation, heading.text());
+            markdownFileWriter.write(line);
         }
     }
 
@@ -98,7 +98,7 @@ public class WebsiteAnalyzer {
 
         Document doc = fetchAndParseWebsite(url);
         if (doc == null) {
-            fileWriter.write(String.format("\n\n<br>%s broken link <a>%s</a>\n", indentation, url));
+            markdownFileWriter.write(String.format("%n%n<br>%s broken link <a>%s</a>%n", indentation, url));
             return;
         }
 
@@ -108,7 +108,7 @@ public class WebsiteAnalyzer {
         print("\nFound %d headings, %d links", headings.size(), links.size());
 
         if (depth > 0) {
-            fileWriter.write(String.format("\n\n<br>%s link to <a>%s</a>\n", indentation, url));
+            markdownFileWriter.write(String.format("%n%n<br>%s link to <a>%s</a>%n", indentation, url));
         }
 
         this.recordHeadings(headings, indentation);

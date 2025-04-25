@@ -5,11 +5,11 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 
-public class FileWriter {
+public class MarkdownFileWriter {
 
     private final String filePath;
 
-    public FileWriter(String filePath) throws IOException {
+    public MarkdownFileWriter(String filePath) throws IOException {
         this.filePath = filePath;
         Files.write(Paths.get(filePath), "".getBytes(), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
     }
