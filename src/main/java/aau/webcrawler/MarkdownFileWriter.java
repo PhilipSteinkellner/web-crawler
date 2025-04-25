@@ -1,4 +1,4 @@
-package org.example;
+package aau.webcrawler;
 
 import java.io.IOException;
 import java.nio.file.Files;

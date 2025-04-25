@@ -1,5 +1,5 @@
-import org.example.MarkdownFileWriter;
-import org.example.WebsiteAnalyzer;
+package aau.webcrawler;
+
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;

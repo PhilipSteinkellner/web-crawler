@@ -1,4 +1,4 @@
-package org.example;
+package aau.webcrawler;
 
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -37,5 +37,15 @@ public class WebCrawler implements Callable<Integer> {
         websiteAnalyzer.analyze(url, 0);
 
         return 0;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+    public int getDepth() {
+        return maxDepth;
+    }
+    public List<String> getDomains() {
+        return targetDomains;
     }
 }
