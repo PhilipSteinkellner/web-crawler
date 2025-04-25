@@ -4,6 +4,7 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 
@@ -12,13 +13,13 @@ import java.util.concurrent.Callable;
 public class WebCrawler implements Callable<Integer> {
 
     @Parameters(index = "0", description = "The url to start from")
-    private String url;
+    private String url = "";
 
     @Parameters(index = "1..*", description = "The domains to consider")
-    private List<String> targetDomains;
+    private List<String> targetDomains = new ArrayList<>();
 
     @Option(names = {"-d", "--depth"}, description = "The maximum depth of websites to crawl")
-    private int maxDepth = 0; // Refactored: Removed static final and renamed to maxDepth
+    private int maxDepth = 0;
 
     @Override
     public Integer call() throws Exception {

@@ -33,6 +33,8 @@ public class WebsiteAnalyzer {
         System.out.printf("%s%n", String.format(msg, args));
     }
 
+    // Utility to filter a stream to unique elements by a given key.
+    // Used to avoid processing duplicate URLs.
     private static <T> Predicate<T> distinctByKey(Function<? super T, ?> keyExtractor) {
         Set<Object> seen = ConcurrentHashMap.newKeySet();
         return t -> seen.add(keyExtractor.apply(t));
@@ -78,6 +80,11 @@ public class WebsiteAnalyzer {
         }
     }
 
+    /**
+     * Analyzes the given URL recursively, extracting headings and links up to the specified depth.
+     * @param url the starting URL
+     * @param depth the current recursion depth
+     */
     public void analyze(String url, int depth) throws IOException {
         if (depth > maxDepth) return;
 
@@ -86,8 +93,8 @@ public class WebsiteAnalyzer {
         if (seenUrls.contains(url)) return;
         else seenUrls.add(url);
 
-        String indentation = "--".repeat(depth);
-        if (!indentation.isEmpty()) indentation += ">";
+        String markdownIndentation = "--".repeat(depth);
+        if (!markdownIndentation.isEmpty()) markdownIndentation += ">";
 
         if (depth > 0) {
             boolean validHost = checkHostValidity(url);
@@ -98,7 +105,7 @@ public class WebsiteAnalyzer {
 
         Document doc = fetchAndParseWebsite(url);
         if (doc == null) {
-            markdownFileWriter.write(String.format("%n%n<br>%s broken link <a>%s</a>%n", indentation, url));
+            markdownFileWriter.write(String.format("%n%n<br>%s broken link <a>%s</a>%n", markdownIndentation, url));
             return;
         }
 
@@ -108,10 +115,10 @@ public class WebsiteAnalyzer {
         print("\nFound %d headings, %d links", headings.size(), links.size());
 
         if (depth > 0) {
-            markdownFileWriter.write(String.format("%n%n<br>%s link to <a>%s</a>%n", indentation, url));
+            markdownFileWriter.write(String.format("%n%n<br>%s link to <a>%s</a>%n", markdownIndentation, url));
         }
 
-        this.recordHeadings(headings, indentation);
+        this.recordHeadings(headings, markdownIndentation);
 
         for (Element link : links) {
             String href = link.attr("abs:href");

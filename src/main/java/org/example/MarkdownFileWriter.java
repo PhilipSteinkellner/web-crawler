@@ -9,6 +9,7 @@ public class MarkdownFileWriter {
 
     private final String filePath;
 
+    // WARNING: This constructor truncates the file if it already exists.
     public MarkdownFileWriter(String filePath) throws IOException {
         this.filePath = filePath;
         Files.write(Paths.get(filePath), "".getBytes(), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
