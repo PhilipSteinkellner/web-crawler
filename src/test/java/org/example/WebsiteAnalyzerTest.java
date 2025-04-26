@@ -2,12 +2,10 @@ package org.example;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
+import java.io.IOException;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.contains;
@@ -16,62 +14,65 @@ import static org.mockito.Mockito.*;
 class WebsiteAnalyzerTest {
 
     private MarkdownFileWriter markdownFileWriter;
+    private WebsiteFetcher websiteFetcher;
+    private MarkdownRecorder markdownRecorder;
     private WebsiteAnalyzer analyzer;
 
     @BeforeEach
     void setUp() {
         markdownFileWriter = mock(MarkdownFileWriter.class);
-        analyzer = new WebsiteAnalyzer(List.of("example.com"), 1, markdownFileWriter);
+        websiteFetcher = mock(WebsiteFetcher.class);
+        markdownRecorder = mock(MarkdownRecorder.class);
+
+        // Create analyzer using real constructor, but inject mocks for collaborators
+        analyzer = new WebsiteAnalyzer(
+                List.of("example.com"),
+                1,
+                markdownFileWriter
+        ) {
+            {
+                // Override collaborators
+                this.websiteFetcher = WebsiteAnalyzerTest.this.websiteFetcher;
+                this.markdownRecorder = WebsiteAnalyzerTest.this.markdownRecorder;
+            }
+        };
     }
 
     @Test
-    void testCheckHostValidity_withValidDomain() throws Exception {
-        // public method indirectly calls checkHostValidity
+    void testAnalyze_withValidDomain_callsMarkdownWrite() throws IOException {
         Document doc = Jsoup.parse("<html><head></head><body><a href='https://example.com/page'>link</a></body></html>");
-        WebsiteAnalyzer spyAnalyzer = Mockito.spy(analyzer);
-        doReturn(doc).when(spyAnalyzer).fetchAndParseWebsite("https://example.com");
+        when(websiteFetcher.fetch("https://example.com")).thenReturn(doc);
 
-        spyAnalyzer.analyze("https://example.com", 1);
+        analyzer.analyze("https://example.com", 1);
 
-        verify(markdownFileWriter, atLeastOnce()).write(contains("link to"));
+        verify(markdownRecorder, atLeastOnce()).recordLink(contains("https://example.com"), any());
     }
 
     @Test
-    void testAnalyze_skipsInvalidUrl() throws Exception {
+    void testAnalyze_skipsInvalidUrl_noInteractions() throws IOException {
         analyzer.analyze("ht!tp://invalid-url", 1);
-        // Should not call fileWriter
+
+        verifyNoInteractions(markdownRecorder);
         verifyNoInteractions(markdownFileWriter);
     }
 
     @Test
-    void testAnalyze_avoidsDuplicateUrls() throws Exception {
+    void testAnalyze_avoidsDuplicateUrls() throws IOException {
         Document doc = Jsoup.parse("<html><a href='https://example.com'></a></html>");
-        WebsiteAnalyzer spyAnalyzer = Mockito.spy(analyzer);
-        doReturn(doc).when(spyAnalyzer).fetchAndParseWebsite("https://example.com");
+        when(websiteFetcher.fetch("https://example.com")).thenReturn(doc);
 
-        spyAnalyzer.analyze("https://example.com", 1);
-        spyAnalyzer.analyze("https://example.com", 1);
+        analyzer.analyze("https://example.com", 1);
+        analyzer.analyze("https://example.com", 1);
 
-        verify(markdownFileWriter, times(1)).write(anyString());
+        verify(websiteFetcher, times(1)).fetch("https://example.com");
     }
 
     @Test
-    void testAnalyze_brokenLinkWritesError() throws Exception {
-        WebsiteAnalyzer spyAnalyzer = Mockito.spy(analyzer);
-        doReturn(null).when(spyAnalyzer).fetchAndParseWebsite("https://example.com");
+    void testAnalyze_brokenLinkWritesError() throws IOException {
+        when(websiteFetcher.fetch("https://example.com")).thenReturn(null);
 
-        spyAnalyzer.analyze("https://example.com", 1);
+        analyzer.analyze("https://example.com", 1);
 
-        verify(markdownFileWriter).write(contains("broken link"));
-    }
-
-    @Test
-    void testRecordHeadings_writesFormattedHeadings() throws Exception {
-        Element h2 = Jsoup.parse("<h2>Heading</h2>").selectFirst("h2");
-        Elements headings = new Elements(h2);
-
-        analyzer.recordHeadings(headings, "-->");
-
-        verify(markdownFileWriter).write(contains("## --> Heading"));
+        verify(markdownRecorder).recordBrokenLink(contains("https://example.com"), any());
     }
 }

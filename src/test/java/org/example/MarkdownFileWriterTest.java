@@ -61,7 +61,6 @@ class MarkdownFileWriterTest {
 
     @Test
     void testWriteThrowsIOException() {
-        MarkdownFileWriter faultyMarkdownFileWriter = null;
         assertThrows(IOException.class, () -> new MarkdownFileWriter("/invalid_path/test_output.txt"), "IOException should be thrown");
     }
 }
