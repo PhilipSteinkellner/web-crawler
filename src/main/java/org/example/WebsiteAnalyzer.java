@@ -12,8 +12,8 @@ import java.util.Set;
 public class WebsiteAnalyzer {
 
     private final UrlValidator urlValidator;
-    private final WebsiteFetcher websiteFetcher;
-    private final MarkdownRecorder markdownRecorder;
+    WebsiteFetcher websiteFetcher;
+    MarkdownRecorder markdownRecorder;
     private final int maxDepth;
     private final Set<String> seenUrls = new HashSet<>();
 
