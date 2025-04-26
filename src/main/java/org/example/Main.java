@@ -1,4 +1,4 @@
-package aau.webcrawler;
+package org.example;
 
 import picocli.CommandLine;
 
