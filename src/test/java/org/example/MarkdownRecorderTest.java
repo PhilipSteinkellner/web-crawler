@@ -1,7 +1,6 @@
 package org.example;
 
 import org.jsoup.Jsoup;
-import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -11,12 +10,17 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.IOException;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.contains;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class MarkdownRecorderTest {
+
+    private static final String DEFAULT_URL = "https://example.com";
+    private static final String BROKEN_URL = "https://example.com/broken";
+    private static final String INDENTATION = "  ";
+    private static final String NO_INDENTATION = "";
 
     @Mock
     private MarkdownWriter markdownWriter;
@@ -25,26 +29,75 @@ class MarkdownRecorderTest {
 
     @BeforeEach
     void setUp() {
-        markdownRecorder = new MarkdownRecorder(markdownWriter);  // inject mock here
+        markdownRecorder = new MarkdownRecorder(markdownWriter);
+    }
+
+    private void assertRecordLink(String url, String indentation, String linkType) throws IOException {
+        String expectedOutput = String.format("%n%n%s %s %s%n", indentation, linkType, url);
+        verify(markdownWriter).write(expectedOutput);
+    }
+
+    private Elements createHeadingElements(String html) {
+        return new Elements(Jsoup.parse(html).select("h1, h2, h3"));
     }
 
     @Test
-    void testRecordBrokenLink() throws Exception {
-        String url = "http://example.com/broken";
-        String indentation = "  ";
-
-        markdownRecorder.recordBrokenLink(url, indentation);  // uses injected mock!
-
-        verify(markdownWriter).write(String.format("%n%n%s broken link %s%n", indentation, url));
+    void recordBrokenLink_writesFormattedBrokenLink() throws Exception {
+        markdownRecorder.recordBrokenLink(BROKEN_URL, INDENTATION);
+        assertRecordLink(BROKEN_URL, INDENTATION, "broken link");
     }
 
     @Test
-    void testRecordHeadings_writesFormattedHeadings() throws IOException {
-        String htmlContent = "<h2>Heading</h2>";
-        Element headingElement = Jsoup.parse(htmlContent).selectFirst("h2");
-        Elements headingElements = new Elements(headingElement);
-        String indentation = "-->";
-        markdownRecorder.recordHeadings(headingElements, indentation);
-        verify(markdownWriter, times(1)).write(contains("## --> Heading"));
+    void recordBrokenLink_throwsIOException() throws Exception {
+        doThrow(new IOException("Write error")).when(markdownWriter).write(anyString());
+        assertThrows(IOException.class, () -> markdownRecorder.recordBrokenLink(BROKEN_URL, INDENTATION));
+    }
+
+    @Test
+    void recordLink_writesFormattedLinkWithIndentation() throws Exception {
+        markdownRecorder.recordLink(DEFAULT_URL, INDENTATION);
+        assertRecordLink(DEFAULT_URL, INDENTATION, "link to");
+    }
+
+    @Test
+    void recordLink_writesFormattedLinkWithoutIndentation() throws Exception {
+        markdownRecorder.recordLink(DEFAULT_URL, NO_INDENTATION);
+        assertRecordLink(DEFAULT_URL, NO_INDENTATION, "link to");
+    }
+
+    @Test
+    void recordLink_throwsIOException() throws Exception {
+        doThrow(new IOException("Write error")).when(markdownWriter).write(anyString());
+        assertThrows(IOException.class, () -> markdownRecorder.recordLink(DEFAULT_URL, INDENTATION));
+    }
+
+    @Test
+    void recordHeadings_writesFormattedHeadings() throws IOException {
+        Elements headings = createHeadingElements("<h2>Heading</h2>");
+        markdownRecorder.recordHeadings(headings, "-->");
+        verify(markdownWriter).write(contains("## --> Heading"));
+    }
+
+    @Test
+    void recordHeadings_handlesEmptyIndentation() throws Exception {
+        Elements headings = createHeadingElements("<h1>Heading 1</h1><h3>Heading 3</h3>");
+        markdownRecorder.recordHeadings(headings, NO_INDENTATION);
+
+        verify(markdownWriter).write(String.format("%n#  Heading 1"));
+        verify(markdownWriter).write(String.format("%n###  Heading 3"));
+    }
+
+    @Test
+    void recordHeadings_handlesEmptyHeadings() throws Exception {
+        markdownRecorder.recordHeadings(new Elements(), INDENTATION);
+        verify(markdownWriter, never()).write(anyString());
+    }
+
+    @Test
+    void recordHeadings_throwsIOException() throws Exception {
+        Elements headings = createHeadingElements("<h1>Heading 1</h1>");
+        doThrow(new IOException("Write error")).when(markdownWriter).write(anyString());
+
+        assertThrows(IOException.class, () -> markdownRecorder.recordHeadings(headings, INDENTATION));
     }
 }
