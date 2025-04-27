@@ -69,12 +69,12 @@ public class WebsiteAnalyzer {
         return url;
     }
 
-    private String createMarkdownIndentation(int depth) {
+    String createMarkdownIndentation(int depth) {
         String indentation = "--".repeat(depth);
         return indentation.isEmpty() ? indentation : indentation + ">";
     }
 
-    private static void print(String msg, Object... args) {
+    static void print(String msg, Object... args) {
         System.out.printf("%s%n", String.format(msg, args));
     }
 }

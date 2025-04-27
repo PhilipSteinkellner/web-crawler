@@ -42,12 +42,12 @@ class WebCrawlerTest {
 
         try (MockedConstruction<MarkdownFileWriter> markdownWriterMock = mockConstruction(MarkdownFileWriter.class);
              MockedConstruction<WebsiteAnalyzer> analyzerMock = mockConstruction(WebsiteAnalyzer.class,
-                     (mockAnalyzer, _) -> doNothing().when(mockAnalyzer).analyze(anyString(), anyInt()))
+                     (mockAnalyzer, context) -> doNothing().when(mockAnalyzer).analyze(anyString(), anyInt()))
         ) {
             Integer result = crawler.call();
 
-            MarkdownFileWriter writer = markdownWriterMock.constructed().getFirst();
-            WebsiteAnalyzer analyzer = analyzerMock.constructed().getFirst();
+            MarkdownFileWriter writer = markdownWriterMock.constructed().get(0);
+            WebsiteAnalyzer analyzer = analyzerMock.constructed().get(0);
 
             String expectedContent = "**Input Arguments**" +
                     String.format("%n- URL: %s", TEST_URL) +
@@ -64,9 +64,9 @@ class WebCrawlerTest {
     void call_propagatesIOExceptionFromWriter() {
         WebCrawler crawler = createCrawler(List.of(EXAMPLE_COM));
 
-        try (MockedConstruction<MarkdownFileWriter> _ = mockConstruction(
+        try (MockedConstruction<MarkdownFileWriter> markdownWriterMock = mockConstruction(
                 MarkdownFileWriter.class,
-                (mockWriter, _) -> doThrow(new IOException("write failed")).when(mockWriter).write(anyString()))
+                (mockWriter, context) -> doThrow(new IOException("write failed")).when(mockWriter).write(anyString()))
         ) {
             assertThrows(IOException.class, crawler::call);
         }
