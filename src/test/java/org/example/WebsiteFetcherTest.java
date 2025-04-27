@@ -14,53 +14,57 @@ import static org.mockito.Mockito.*;
 
 class WebsiteFetcherTest {
 
-    public static final String FETCH_URL = "https://example.com";
-    public static final String INVALID_URL = "http://invalid-url";
-    private WebsiteFetcher websiteFetcher;
+    public static final String TEST_URL = "https://example.com";
+    private WebsiteFetcher fetcher;
 
     @BeforeEach
     void setUp() {
-        websiteFetcher = new WebsiteFetcher();
+        fetcher = new WebsiteFetcher();
     }
 
     @Test
-    void fetch_validUrl_returnsDocument() throws IOException {
+    void fetch_returnsNull_whenUrlIsNull() {
+        assertNull(fetcher.fetch(null));
+    }
+
+    @Test
+    void fetch_returnsNull_whenUrlIsEmpty() {
+        assertNull(fetcher.fetch(""));
+    }
+
+    @Test
+    void fetch_returnsDocument_whenFetchSuccessful() throws IOException {
+        Document mockDocument = mock(Document.class);
+
         try (MockedStatic<Jsoup> jsoupMock = mockStatic(Jsoup.class)) {
+            Connection connectionMock = mock(Connection.class);
 
-            Document mockDocument = mock(Document.class);
+            jsoupMock.when(() -> Jsoup.connect(TEST_URL)).thenReturn(connectionMock);
+            when(connectionMock.get()).thenReturn(mockDocument);
 
-            Connection mockConnection = mock(Connection.class);
-            jsoupMock.when(() -> Jsoup.connect(FETCH_URL)).thenReturn(mockConnection);
-            when(mockConnection.get()).thenReturn(mockDocument);
-
-            Document result = websiteFetcher.fetch(FETCH_URL);
+            Document result = fetcher.fetch(TEST_URL);
 
             assertNotNull(result);
             assertEquals(mockDocument, result);
-
-            jsoupMock.verify(() -> Jsoup.connect(FETCH_URL), times(1));
+            jsoupMock.verify(() -> Jsoup.connect(TEST_URL));
+            verify(connectionMock).get();
         }
     }
 
     @Test
-    void fetch_invalidUrl_returnsNull() throws IOException {
+    void fetch_returnsNull_whenIOExceptionOccurs() throws IOException {
+
         try (MockedStatic<Jsoup> jsoupMock = mockStatic(Jsoup.class)) {
+            Connection connectionMock = mock(Connection.class);
 
-            Connection mockConnection = mock(Connection.class);
-            jsoupMock.when(() -> Jsoup.connect(INVALID_URL)).thenReturn(mockConnection);
-            when(mockConnection.get()).thenThrow(new IOException());
+            jsoupMock.when(() -> Jsoup.connect(TEST_URL)).thenReturn(connectionMock);
+            when(connectionMock.get()).thenThrow(new IOException("Connection failed"));
 
-            Document result = websiteFetcher.fetch(INVALID_URL);
+            Document result = fetcher.fetch(TEST_URL);
 
             assertNull(result);
-
-            jsoupMock.verify(() -> Jsoup.connect(INVALID_URL), times(1));
+            jsoupMock.verify(() -> Jsoup.connect(TEST_URL));
+            verify(connectionMock).get();
         }
-    }
-
-    @Test
-    void fetch_nullUrl_returnsNull() {
-        Document result = websiteFetcher.fetch(null);
-        assertNull(result);
     }
 }

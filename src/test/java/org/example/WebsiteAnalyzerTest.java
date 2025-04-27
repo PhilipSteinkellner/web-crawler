@@ -4,6 +4,8 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import java.io.IOException;
 import java.util.List;
@@ -77,37 +79,42 @@ class WebsiteAnalyzerTest {
     }
 
     @Test
-    void shouldRemoveFragmentFromUrl() {
-        String urlWithFragment = URL_TO_ANALYZE + "/page#section1";
-        String sanitized = analyzer.sanitizeUrl(urlWithFragment);
-        assertEquals(URL_TO_ANALYZE + "/page", sanitized);
+    void testAnalyze_returnsImmediatelyIfDepthExceedsMax() throws IOException {
+        // Arrange: maxDepth is 1, so use depth 2
+        analyzer.analyze(URL_TO_ANALYZE, 2);
+        // Should not interact with fetcher or recorder
+        verifyNoInteractions(websiteFetcher);
+        verifyNoInteractions(markdownRecorder);
     }
 
     @Test
-    void shouldReturnUrlUnchangedIfNoFragment() {
-        String urlWithoutFragment = URL_TO_ANALYZE + "/page";
-        String sanitized = analyzer.sanitizeUrl(urlWithoutFragment);
-        assertEquals(URL_TO_ANALYZE + "/page", sanitized);
+    void testAnalyze_withDepthZero_recordsHeadingsButNotLink() throws IOException {
+        Document doc = Jsoup.parse("<h1>Header</h1><a href=\"/next\"></a>");
+        when(websiteFetcher.fetch(URL_TO_ANALYZE)).thenReturn(doc);
+
+        analyzer.analyze(URL_TO_ANALYZE, 0);
+
+        verify(markdownRecorder).recordHeadings(any(), any());
+        verify(markdownRecorder, never()).recordLink(any(), any());
     }
 
     @Test
-    void shouldHandleUrlEndingWithHash() {
-        String urlEndingWithHash = URL_TO_ANALYZE + "/page#";
-        String sanitized = analyzer.sanitizeUrl(urlEndingWithHash);
-        assertEquals(URL_TO_ANALYZE + "/page", sanitized);
+    void testCreateMarkdownIndentation_variousDepths() {
+        assertEquals("", analyzer.createMarkdownIndentation(0));
+        assertEquals("-->", analyzer.createMarkdownIndentation(1));
+        assertEquals("---->", analyzer.createMarkdownIndentation(2));
     }
 
-    @Test
-    void shouldHandleEmptyString() {
-        String emptyUrl = "";
-        String sanitized = analyzer.sanitizeUrl(emptyUrl);
-        assertEquals("", sanitized);
+    @ParameterizedTest
+    @CsvSource({
+            "https://example.com/page#section, https://example.com/page",
+            "https://example.com/page, https://example.com/page",
+            "https://example.com/page#, https://example.com/page",
+            "'', ''",
+            "#section, ''"
+    })
+    void sanitizeUrl_shouldReturnExpected(String input, String expected) {
+        assertEquals(expected, analyzer.sanitizeUrl(input));
     }
 
-    @Test
-    void shouldHandleOnlyFragment() {
-        String onlyFragment = "#section";
-        String sanitized = analyzer.sanitizeUrl(onlyFragment);
-        assertEquals("", sanitized);
-    }
 }
