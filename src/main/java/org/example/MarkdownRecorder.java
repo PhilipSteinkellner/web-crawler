@@ -35,4 +35,5 @@ public class MarkdownRecorder {
             markdownWriter.write(line);
         }
     }
+
 }

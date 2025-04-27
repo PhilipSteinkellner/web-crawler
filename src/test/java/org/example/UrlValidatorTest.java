@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class UrlValidatorTest {
 
+    public static final String TEST_URL = "https://example.com";
     private UrlValidator urlValidator;
 
     @BeforeEach
@@ -18,21 +19,21 @@ class UrlValidatorTest {
 
     @Test
     void testValidUrlWithTargetDomain() {
-        assertTrue(urlValidator.isValid("http://example.com"));
+        assertTrue(urlValidator.isValid(TEST_URL));
         assertTrue(urlValidator.isValid("https://subdomain.example.com"));
-        assertTrue(urlValidator.isValid("http://www.test.org/page"));
+        assertTrue(urlValidator.isValid("https://www.test.org/page"));
     }
 
     @Test
     void testInvalidUrlWithNonTargetDomain() {
-        assertFalse(urlValidator.isValid("http://anotherdomain.com"));
+        assertFalse(urlValidator.isValid("https://anotherdomain.com"));
         assertFalse(urlValidator.isValid("https://random.org"));
     }
 
     @Test
     void testMalformedUrl() {
-        assertFalse(urlValidator.isValid("invalidurl"));
-        assertFalse(urlValidator.isValid("http://"));
+        assertFalse(urlValidator.isValid("invalid_url"));
+        assertFalse(urlValidator.isValid("https://"));
         assertFalse(urlValidator.isValid("://missing-schema.com"));
     }
 
@@ -54,24 +55,24 @@ class UrlValidatorTest {
 
     @Test
     void testCaseInsensitiveDomainMatching() {
-        assertTrue(urlValidator.isValid("http://EXAMPLE.com/something"));
+        assertTrue(urlValidator.isValid("https://EXAMPLE.com/something"));
         assertTrue(urlValidator.isValid("https://www.TEST.org/index"));
     }
 
     @Test
     void testSubdomainMatching() {
-        assertTrue(urlValidator.isValid("http://sub.example.com"));
-        assertTrue(urlValidator.isValid("http://deep.test.org/path"));
+        assertTrue(urlValidator.isValid("https://sub.example.com"));
+        assertTrue(urlValidator.isValid("https://deep.test.org/path"));
     }
 
     @Test
     void testEmptyTargetDomains() {
         UrlValidator emptyValidator = new UrlValidator(List.of());
-        assertFalse(emptyValidator.isValid("http://example.com"));
+        assertFalse(emptyValidator.isValid(TEST_URL));
     }
     @Test
     void testNonMatchingDomain() {
-        assertFalse(urlValidator.isValid("http://otherdomain.com"));
+        assertFalse(urlValidator.isValid("https://otherdomain.com"));
     }
 
     @Test
@@ -81,6 +82,6 @@ class UrlValidatorTest {
 
     @Test
     void testExactMatchingDomain() {
-        assertTrue(urlValidator.isValid("http://example.com"));
+        assertTrue(urlValidator.isValid(TEST_URL));
     }
 }

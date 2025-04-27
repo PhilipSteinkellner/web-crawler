@@ -26,9 +26,9 @@ public class WebCrawler implements Callable<Integer> {
         MarkdownFileWriter markdownFileWriter = new MarkdownFileWriter("report.md");
 
         String content = ("**Input Arguments**") +
-                String.format("%n- URL: <a>%s</a>", url) +
+                String.format("%n- URL: %s", url) +
                 String.format("%n- Domains: %s", String.join(", ", targetDomains)) +
-                String.format("%n- Depth: <a>%d</a>", maxDepth);
+                String.format("%n- Depth: %d", maxDepth);
 
         markdownFileWriter.write(content);
 
@@ -48,4 +48,8 @@ public class WebCrawler implements Callable<Integer> {
     public List<String> getDomains() {
         return targetDomains;
     }
+
+    public void setUrl(String url) { this.url = url; }
+    public void setDomains(List<String> domains) { this.targetDomains = domains; }
+    public void setDepth(int depth) { this.maxDepth = depth; }
 }

@@ -1,6 +1,20 @@
 plugins {
     id("java")
     application
+    id("jacoco")
+}
+
+jacoco {
+    toolVersion = "0.8.13"
+}
+
+tasks.jacocoTestReport {
+    reports {
+        html.required.set(true)
+        xml.required.set(false)
+        csv.required.set(false)
+        html.outputLocation.set(layout.buildDirectory.dir("jacocoHtml"))
+    }
 }
 
 group = "org.example"
@@ -29,3 +43,6 @@ tasks.test {
 application {
     mainClass.set("org.example.Main")
 }
+
+
+

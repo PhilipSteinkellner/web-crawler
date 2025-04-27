@@ -62,7 +62,7 @@ public class WebsiteAnalyzer {
         }
     }
 
-    private String sanitizeUrl(String url) {
+    String sanitizeUrl(String url) {
         if (url.contains("#")) {
             return url.substring(0, url.indexOf("#"));
         }

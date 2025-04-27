@@ -14,6 +14,8 @@ import static org.mockito.Mockito.*;
 
 class WebsiteFetcherTest {
 
+    public static final String FETCH_URL = "https://example.com";
+    public static final String INVALID_URL = "http://invalid-url";
     private WebsiteFetcher websiteFetcher;
 
     @BeforeEach
@@ -28,15 +30,15 @@ class WebsiteFetcherTest {
             Document mockDocument = mock(Document.class);
 
             Connection mockConnection = mock(Connection.class);
-            jsoupMock.when(() -> Jsoup.connect("http://example.com")).thenReturn(mockConnection);
+            jsoupMock.when(() -> Jsoup.connect(FETCH_URL)).thenReturn(mockConnection);
             when(mockConnection.get()).thenReturn(mockDocument);
 
-            Document result = websiteFetcher.fetch("http://example.com");
+            Document result = websiteFetcher.fetch(FETCH_URL);
 
             assertNotNull(result);
             assertEquals(mockDocument, result);
 
-            jsoupMock.verify(() -> Jsoup.connect("http://example.com"), times(1));
+            jsoupMock.verify(() -> Jsoup.connect(FETCH_URL), times(1));
         }
     }
 
@@ -45,14 +47,14 @@ class WebsiteFetcherTest {
         try (MockedStatic<Jsoup> jsoupMock = mockStatic(Jsoup.class)) {
 
             Connection mockConnection = mock(Connection.class);
-            jsoupMock.when(() -> Jsoup.connect("http://invalid-url")).thenReturn(mockConnection);
+            jsoupMock.when(() -> Jsoup.connect(INVALID_URL)).thenReturn(mockConnection);
             when(mockConnection.get()).thenThrow(new IOException());
 
-            Document result = websiteFetcher.fetch("http://invalid-url");
+            Document result = websiteFetcher.fetch(INVALID_URL);
 
             assertNull(result);
 
-            jsoupMock.verify(() -> Jsoup.connect("http://invalid-url"), times(1));
+            jsoupMock.verify(() -> Jsoup.connect(INVALID_URL), times(1));
         }
     }
 
