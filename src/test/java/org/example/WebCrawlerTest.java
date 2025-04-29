@@ -53,7 +53,7 @@ class WebCrawlerTest {
             String expectedContent = "**Input Arguments**" +
                     String.format("%n- URL: %s", TEST_URL) +
                     String.format("%n- Domains: %s", EXAMPLE_COM) +
-                    String.format("%n- Depth: %d", TEST_DEPTH);
+                    String.format("%n- Depth: %d%n", TEST_DEPTH);
 
             verify(writer).write(expectedContent);
             verify(analyzer).analyze(TEST_URL, 0);
