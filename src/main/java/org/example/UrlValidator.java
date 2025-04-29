@@ -6,6 +6,7 @@ import java.util.List;
 public class UrlValidator {
 
     private final List<String> targetDomains;
+    private final Logger logger = Logger.getInstance();
 
     public UrlValidator(List<String> targetDomains) {
         this.targetDomains = targetDomains;
@@ -15,13 +16,13 @@ public class UrlValidator {
         try {
             var host = URI.create(url).getHost();
             if (host == null) {
-                System.out.printf("%n%s has no host component%n", url);
+                logger.debug("%s has no host component", url);
                 return false;
             }
             return targetDomains.stream()
                     .anyMatch(domain -> host.toLowerCase().contains(domain.toLowerCase()));
         } catch (IllegalArgumentException e) {
-            System.out.printf("%n%s is not a valid URL%n", url);
+            logger.debug("%s is not a valid URL", url);
             return false;
         }
     }

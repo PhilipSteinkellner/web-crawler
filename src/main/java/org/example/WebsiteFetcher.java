@@ -7,6 +7,8 @@ import java.io.IOException;
 
 public class WebsiteFetcher {
 
+    private final Logger logger = Logger.getInstance();
+
     public Document fetch(String url) {
         if (url == null || url.isEmpty()) {
             return null;
@@ -14,6 +16,7 @@ public class WebsiteFetcher {
         try {
             return Jsoup.connect(url).get();
         } catch (IOException e) {
+            logger.debug("broken link %s", url);
             return null;
         }
     }

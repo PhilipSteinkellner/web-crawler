@@ -12,10 +12,11 @@ import java.util.Set;
 public class WebsiteAnalyzer {
 
     private final UrlValidator urlValidator;
-    WebsiteFetcher websiteFetcher;
-    MarkdownRecorder markdownRecorder;
     private final int maxDepth;
     private final Set<String> seenUrls = new HashSet<>();
+    private final Logger logger = Logger.getInstance();
+    protected WebsiteFetcher websiteFetcher;
+    protected MarkdownRecorder markdownRecorder;
 
     public WebsiteAnalyzer(List<String> targetDomains, int maxDepth, MarkdownFileWriter markdownFileWriter) {
         this.urlValidator = new UrlValidator(targetDomains);
@@ -37,7 +38,7 @@ public class WebsiteAnalyzer {
             return;
         }
 
-        print("\nAnalyzing %s", url);
+        logger.info("Analyzing %s", url);
 
         Document doc = websiteFetcher.fetch(url);
         if (doc == null) {
@@ -48,7 +49,7 @@ public class WebsiteAnalyzer {
         Elements links = doc.select("a[href]");
         Elements headings = doc.select("h1, h2, h3, h4, h5, h6");
 
-        print("\nFound %d headings, %d links", headings.size(), links.size());
+        logger.info("Found %d headings, %d links", headings.size(), links.size());
 
         if (depth > 0) {
             markdownRecorder.recordLink(url, markdownIndentation);
@@ -72,9 +73,5 @@ public class WebsiteAnalyzer {
     String createMarkdownIndentation(int depth) {
         String indentation = "--".repeat(depth);
         return indentation.isEmpty() ? indentation : indentation + ">";
-    }
-
-    static void print(String msg, Object... args) {
-        System.out.printf("%s%n", String.format(msg, args));
     }
 }
