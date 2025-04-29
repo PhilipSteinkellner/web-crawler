@@ -70,6 +70,7 @@ class UrlValidatorTest {
         UrlValidator emptyValidator = new UrlValidator(List.of());
         assertFalse(emptyValidator.isValid(TEST_URL));
     }
+
     @Test
     void testNonMatchingDomain() {
         assertFalse(urlValidator.isValid("https://otherdomain.com"));

@@ -42,14 +42,24 @@ public class WebCrawler implements Callable<Integer> {
     public String getUrl() {
         return url;
     }
+
+    public void setUrl(String url) {
+        this.url = url;
+    }
+
     public int getDepth() {
         return maxDepth;
     }
+
+    public void setDepth(int depth) {
+        this.maxDepth = depth;
+    }
+
     public List<String> getDomains() {
         return targetDomains;
     }
 
-    public void setUrl(String url) { this.url = url; }
-    public void setDomains(List<String> domains) { this.targetDomains = domains; }
-    public void setDepth(int depth) { this.maxDepth = depth; }
+    public void setDomains(List<String> domains) {
+        this.targetDomains = domains;
+    }
 }
