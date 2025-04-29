@@ -4,6 +4,7 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 
@@ -12,29 +13,43 @@ import java.util.concurrent.Callable;
 public class WebCrawler implements Callable<Integer> {
 
     @Parameters(index = "0", description = "The url to start from")
-    private String url;
+    private String url = "";
 
     @Parameters(index = "1..*", description = "The domains to consider")
-    private List<String> domains;
+    private List<String> targetDomains = new ArrayList<>();
 
-    @Option(names = {"-d", "--depth"}, description = "The depth of websites to crawl")
-    private int depth = 0;
+    @Option(names = {"-d", "--depth"}, description = "The maximum depth of websites to crawl")
+    private int maxDepth = 0;
 
     @Override
     public Integer call() throws Exception {
-        FileWriter fileWriter = new FileWriter("report.md");
+        MarkdownFileWriter markdownFileWriter = new MarkdownFileWriter("report.md");
 
         String content = ("**Input Arguments**") +
-                String.format("\n- URL: <a>%s</a>", url) +
-                String.format("\n- Domains: %s", String.join(", ", domains)) +
-                String.format("\n- Depth: <a>%d</a>", depth);
+                String.format("%n- URL: %s", url) +
+                String.format("%n- Domains: %s", String.join(", ", targetDomains)) +
+                String.format("%n- Depth: %d", maxDepth);
 
-        fileWriter.write(content);
+        markdownFileWriter.write(content);
 
-        WebsiteAnalyzer websiteAnalyzer = new WebsiteAnalyzer(domains, depth, fileWriter);
+        WebsiteAnalyzer websiteAnalyzer = new WebsiteAnalyzer(targetDomains, maxDepth, markdownFileWriter);
 
         websiteAnalyzer.analyze(url, 0);
 
         return 0;
     }
+
+    public String getUrl() {
+        return url;
+    }
+    public int getDepth() {
+        return maxDepth;
+    }
+    public List<String> getDomains() {
+        return targetDomains;
+    }
+
+    public void setUrl(String url) { this.url = url; }
+    public void setDomains(List<String> domains) { this.targetDomains = domains; }
+    public void setDepth(int depth) { this.maxDepth = depth; }
 }

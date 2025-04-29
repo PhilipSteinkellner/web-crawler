@@ -16,3 +16,7 @@ Run `./gradlew run --args='https://news.orf.at orf.at --depth=1`
 ## Test
 
 Run `./gradlew test`
+
+## Test Coverge
+
+Run `./gradlew test jacocoTestReport`
