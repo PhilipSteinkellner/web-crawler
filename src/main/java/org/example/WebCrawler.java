@@ -28,7 +28,7 @@ public class WebCrawler implements Callable<Integer> {
         String content = ("**Input Arguments**") +
                 String.format("%n- URL: %s", url) +
                 String.format("%n- Domains: %s", String.join(", ", targetDomains)) +
-                String.format("%n- Depth: %d", maxDepth);
+                String.format("%n- Depth: %d%n", maxDepth);
 
         markdownFileWriter.write(content);
 
