@@ -11,6 +11,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.IOException;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.contains;
@@ -41,6 +42,25 @@ class MarkdownRecorderTest {
 
     private Elements createHeadingElements(String html) {
         return new Elements(Jsoup.parse(html).select("h1, h2, h3"));
+    }
+
+    @Nested
+    class RecordInputArgumentsTests {
+        @Test
+        void writesInputArguments() throws Exception {
+            var url = "URL";
+            var targetDomains = (List.of("Domain"));
+            var depth = 2;
+
+            markdownRecorder.recordInputArguments(url, targetDomains, depth);
+
+            String expectedContent = "**Input Arguments**" +
+                    String.format("%n- URL: %s", url) +
+                    String.format("%n- Domains: %s", String.join(", ", targetDomains)) +
+                    String.format("%n- Depth: %d%n", depth);
+
+            verify(markdownWriter).write(expectedContent);
+        }
     }
 
     @Nested

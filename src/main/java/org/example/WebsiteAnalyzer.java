@@ -25,6 +25,10 @@ public class WebsiteAnalyzer {
         this.maxDepth = maxDepth;
     }
 
+    public void recordInputArguments(String url, List<String> targetDomains, int maxDepth) throws IOException {
+        this.markdownRecorder.recordInputArguments(url, targetDomains, maxDepth);
+    }
+
     public void analyze(String url, int depth) throws IOException {
         if (depth > maxDepth) return;
 

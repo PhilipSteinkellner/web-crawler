@@ -50,12 +50,8 @@ class WebCrawlerTest {
             MarkdownFileWriter writer = markdownWriterMock.constructed().get(0);
             WebsiteAnalyzer analyzer = analyzerMock.constructed().get(0);
 
-            String expectedContent = "**Input Arguments**" +
-                    String.format("%n- URL: %s", TEST_URL) +
-                    String.format("%n- Domains: %s", EXAMPLE_COM) +
-                    String.format("%n- Depth: %d%n", TEST_DEPTH);
 
-            verify(writer).write(expectedContent);
+            verify(analyzer).recordInputArguments(TEST_URL, List.of(EXAMPLE_COM), TEST_DEPTH);
             verify(analyzer).analyze(TEST_URL, 0);
             assertEquals(0, result);
         }

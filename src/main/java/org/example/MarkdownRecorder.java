@@ -4,6 +4,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -13,6 +14,15 @@ public class MarkdownRecorder {
 
     public MarkdownRecorder(MarkdownWriter markdownWriter) {
         this.markdownWriter = markdownWriter;
+    }
+
+    public void recordInputArguments(String url, List<String> targetDomains, int maxDepth) throws IOException {
+        String content = ("**Input Arguments**") +
+                String.format("%n- URL: %s", url) +
+                String.format("%n- Domains: %s", String.join(", ", targetDomains)) +
+                String.format("%n- Depth: %d%n", maxDepth);
+
+        markdownWriter.write(content);
     }
 
     public void recordBrokenLink(String url, String indentation) throws IOException {

@@ -25,14 +25,9 @@ public class WebCrawler implements Callable<Integer> {
     public Integer call() throws Exception {
         MarkdownFileWriter markdownFileWriter = new MarkdownFileWriter("report.md");
 
-        String content = ("**Input Arguments**") +
-                String.format("%n- URL: %s", url) +
-                String.format("%n- Domains: %s", String.join(", ", targetDomains)) +
-                String.format("%n- Depth: %d%n", maxDepth);
-
-        markdownFileWriter.write(content);
-
         WebsiteAnalyzer websiteAnalyzer = new WebsiteAnalyzer(targetDomains, maxDepth, markdownFileWriter);
+
+        websiteAnalyzer.recordInputArguments(url, targetDomains, maxDepth);
 
         websiteAnalyzer.analyze(url, 0);
 
