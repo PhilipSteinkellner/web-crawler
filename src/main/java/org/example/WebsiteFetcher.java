@@ -10,27 +10,28 @@ import org.jsoup.select.Elements;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class WebsiteFetcher {
 
     private final Logger logger = Logger.getInstance();
 
-    public Page fetchPage(String url) {
+    public Page fetchPage(String url, int depth) {
         if (url == null || url.isEmpty()) {
             return null;
         }
         try {
             Document doc = Jsoup.connect(url).get();
 
-            return buildPage(doc);
+            return buildPage(url, depth, doc);
         } catch (IOException e) {
             logger.debug("broken link %s", url);
-            return null;
+            return new Page(url, depth, true, Collections.emptyList(), Collections.emptyList());
         }
     }
 
-    public Page buildPage(Document doc) {
+    public Page buildPage(String url, int depth, Document doc) {
         Elements docLinks = doc.select("a[href]");
         List<Link> websiteLinks = new ArrayList<>();
 
@@ -48,6 +49,6 @@ public class WebsiteFetcher {
             websiteHeadings.add(new Heading(tagName, text));
         }
 
-        return new Page(websiteHeadings, websiteLinks);
+        return new Page(url, depth, false, websiteHeadings, websiteLinks);
     }
 }

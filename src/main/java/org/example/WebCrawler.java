@@ -29,7 +29,7 @@ public class WebCrawler implements Callable<Integer> {
 
         websiteAnalyzer.recordInputArguments(url, targetDomains, maxDepth);
 
-        websiteAnalyzer.analyze(url, 0);
+        websiteAnalyzer.startAnalysis(url);
 
         return 0;
     }
