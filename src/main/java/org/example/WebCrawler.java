@@ -21,17 +21,24 @@ public class WebCrawler implements Callable<Integer> {
     @Option(names = {"-d", "--depth"}, description = "The maximum depth of websites to crawl")
     private int maxDepth = 0;
 
+    private final Logger logger = Logger.getInstance();
+
     @Override
-    public Integer call() throws Exception {
-        MarkdownFileWriter markdownFileWriter = new MarkdownFileWriter("report.md");
+    public Integer call() {
+        try {
+            MarkdownFileWriter markdownFileWriter = new MarkdownFileWriter("report.md");
 
-        WebsiteAnalyzer websiteAnalyzer = new WebsiteAnalyzer(targetDomains, maxDepth, markdownFileWriter);
+            WebsiteAnalyzer websiteAnalyzer = new WebsiteAnalyzer(targetDomains, maxDepth, markdownFileWriter);
 
-        websiteAnalyzer.recordInputArguments(url, targetDomains, maxDepth);
+            websiteAnalyzer.recordInputArguments(url, targetDomains, maxDepth);
 
-        websiteAnalyzer.startAnalysis(url);
+            websiteAnalyzer.startAnalysis(url);
 
-        return 0;
+            return 0;
+        } catch (Exception e) {
+            logger.error("WebCrawler ran into an exception: %s", e.getMessage());
+            return 1;
+        }
     }
 
     public String getUrl() {

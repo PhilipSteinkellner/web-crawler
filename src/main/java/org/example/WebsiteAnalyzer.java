@@ -12,6 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class WebsiteAnalyzer {
 
+    private final static int THREAD_COUNT = 10;
     private final UrlValidator urlValidator;
     private final int maxDepth;
     private final Set<String> seenUrls = ConcurrentHashMap.newKeySet();
@@ -43,16 +44,22 @@ public class WebsiteAnalyzer {
     }
 
     public void startAnalysis(String url) throws IOException {
-        WebCrawlerEngine crawler = new WebCrawlerEngine(10, this);
+        logger.info("Starting analysis... ");
+        WebCrawlerEngine crawler = new WebCrawlerEngine(THREAD_COUNT, this);
         crawler.crawl(url, 0, maxDepth);
+        logger.info("Finished analysis. Analyzed %d pages.", pages.size());
         writeReport();
     }
 
     public List<Link> analyze(String url, int depth) throws IOException {
+        if (url == null || url.isEmpty()) {
+            return Collections.emptyList();
+        }
+
         url = sanitizeUrl(url);
 
-        if (!seenUrls.add(url)) return null;
-        if (depth > 0 && !urlValidator.isValid(url)) return null;
+        if (!seenUrls.add(url)) return Collections.emptyList();
+        if (depth > 0 && !urlValidator.isValid(url)) return Collections.emptyList();
 
         Page page = websiteFetcher.fetchPage(url, depth);
         pages.add(page);
@@ -60,12 +67,12 @@ public class WebsiteAnalyzer {
         String markdownIndentation = createMarkdownIndentation(page.depth());
 
         if (page.broken()) {
-            logger.info("%s %s: broken link", markdownIndentation, url);
+            logger.debug("%s %s: broken link", markdownIndentation, url);
 
-            return null;
+            return Collections.emptyList();
         }
 
-        logger.info("%s %s: Found %d headings, %d links", markdownIndentation, url, page.headings().size(), page.links().size());
+        logger.debug("%s %s: Found %d headings, %d links", markdownIndentation, url, page.headings().size(), page.links().size());
 
         return page.links();
     }

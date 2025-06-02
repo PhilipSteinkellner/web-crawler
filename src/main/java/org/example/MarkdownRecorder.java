@@ -25,7 +25,7 @@ public class MarkdownRecorder {
     }
 
     public void recordBrokenLink(String url, String indentation) throws IOException {
-        markdownWriter.write(String.format("%n%n%s broken link %s%n", indentation, url));
+        markdownWriter.write(String.format("%n%n%s broken link %s", indentation, url));
     }
 
     public void recordLink(String url, String indentation) throws IOException {

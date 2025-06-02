@@ -18,9 +18,6 @@ public class WebsiteFetcher {
     private final Logger logger = Logger.getInstance();
 
     public Page fetchPage(String url, int depth) {
-        if (url == null || url.isEmpty()) {
-            return null;
-        }
         try {
             Document doc = Jsoup.connect(url).get();
 

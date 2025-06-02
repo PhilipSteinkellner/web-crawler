@@ -14,13 +14,14 @@ public class WebCrawlerEngine {
     private final AtomicInteger activeTasks = new AtomicInteger();
     private final Object taskLock = new Object();
     private final WebsiteAnalyzer analyzer;
+    private final Logger logger = Logger.getInstance();
 
     public WebCrawlerEngine(int threadCount, WebsiteAnalyzer analyzer) {
         this.executor = Executors.newFixedThreadPool(threadCount);
         this.analyzer = analyzer;
     }
 
-    public void crawl(String url, int depth, int maxDepth) throws IOException {
+    public void crawl(String url, int depth, int maxDepth) {
         submitRecursive(url, depth, maxDepth);
 
         synchronized (taskLock) {
@@ -50,13 +51,13 @@ public class WebCrawlerEngine {
         executor.submit(() -> {
             try {
                 List<Link> links = analyzer.analyze(url, depth);
-                if (depth < maxDepth && links != null) {
+                if (depth < maxDepth) {
                     for (Link link : links) {
                         submitRecursive(link.href(), depth + 1, maxDepth);
                     }
                 }
             } catch (IOException e) {
-                Logger.getInstance().error("IOException during analyze: %s", e.getMessage());
+                logger.error("IOException analyzing %s: %s", url, e.getMessage());
             } finally {
                 if (activeTasks.decrementAndGet() == 0) {
                     synchronized (taskLock) {
