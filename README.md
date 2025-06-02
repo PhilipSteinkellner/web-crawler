@@ -12,7 +12,7 @@ Run `./gradlew build`
 
 ## Execute
 
-Run `./gradlew run --args='https://news.orf.at orf.at --depth=1`
+Run `./gradlew run --args='https://news.orf.at orf.at --depth=1'`
 
 The first argument must be a URL that specifies the website to start crawling.
 The following arguments define the domain restrictions.
