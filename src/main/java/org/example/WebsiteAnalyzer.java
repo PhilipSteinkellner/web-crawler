@@ -1,8 +1,7 @@
 package org.example;
 
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
+import org.example.website.Link;
+import org.example.website.Page;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -33,10 +32,9 @@ public class WebsiteAnalyzer {
         if (depth > maxDepth) return;
 
         url = sanitizeUrl(url);
+
         if (seenUrls.contains(url)) return;
         seenUrls.add(url);
-
-        String markdownIndentation = createMarkdownIndentation(depth);
 
         if (depth > 0 && !urlValidator.isValid(url)) {
             return;
@@ -44,26 +42,25 @@ public class WebsiteAnalyzer {
 
         logger.info("Analyzing %s", url);
 
-        Document doc = websiteFetcher.fetch(url);
-        if (doc == null) {
+        String markdownIndentation = createMarkdownIndentation(depth);
+
+        Page page = websiteFetcher.fetchPage(url);
+
+        if (page == null) {
             markdownRecorder.recordBrokenLink(url, markdownIndentation);
             return;
         }
 
-        Elements links = doc.select("a[href]");
-        Elements headings = doc.select("h1, h2, h3, h4, h5, h6");
-
-        logger.info("Found %d headings, %d links", headings.size(), links.size());
+        logger.info("Found %d headings, %d links", page.headings().size(), page.links().size());
 
         if (depth > 0) {
             markdownRecorder.recordLink(url, markdownIndentation);
         }
 
-        markdownRecorder.recordHeadings(headings, markdownIndentation);
+        markdownRecorder.recordHeadings(page.headings(), markdownIndentation);
 
-        for (Element link : links) {
-            String href = link.attr("abs:href");
-            analyze(href, depth + 1);
+        for (Link link : page.links()) {
+            analyze(link.href(), depth + 1);
         }
     }
 

@@ -43,7 +43,7 @@ class WebsiteAnalyzerTest {
     @Test
     void testAnalyze_withValidDomain_callsMarkdownWrite() throws IOException {
         Document doc = Jsoup.parse("<html><head></head><body><a href='" + URL_TO_ANALYZE + "'>link</a></body></html>");
-        when(websiteFetcher.fetch(URL_TO_ANALYZE)).thenReturn(doc);
+        when(websiteFetcher.fetchPage(URL_TO_ANALYZE)).thenReturn(doc);
 
         analyzer.analyze(URL_TO_ANALYZE, 1);
 
@@ -61,17 +61,17 @@ class WebsiteAnalyzerTest {
     @Test
     void testAnalyze_avoidsDuplicateUrls() throws IOException {
         Document doc = Jsoup.parse("<html><a href='" + URL_TO_ANALYZE + "'></a></html>");
-        when(websiteFetcher.fetch(URL_TO_ANALYZE)).thenReturn(doc);
+        when(websiteFetcher.fetchPage(URL_TO_ANALYZE)).thenReturn(doc);
 
         analyzer.analyze(URL_TO_ANALYZE, 1);
         analyzer.analyze(URL_TO_ANALYZE, 1);
 
-        verify(websiteFetcher, times(1)).fetch(URL_TO_ANALYZE);
+        verify(websiteFetcher, times(1)).fetchPage(URL_TO_ANALYZE);
     }
 
     @Test
     void testAnalyze_brokenLinkWritesError() throws IOException {
-        when(websiteFetcher.fetch(URL_TO_ANALYZE)).thenReturn(null);
+        when(websiteFetcher.fetchPage(URL_TO_ANALYZE)).thenReturn(null);
 
         analyzer.analyze(URL_TO_ANALYZE, 1);
 
@@ -90,7 +90,7 @@ class WebsiteAnalyzerTest {
     @Test
     void testAnalyze_withDepthZero_recordsHeadingsButNotLink() throws IOException {
         Document doc = Jsoup.parse("<h1>Header</h1><a href=\"/next\"></a>");
-        when(websiteFetcher.fetch(URL_TO_ANALYZE)).thenReturn(doc);
+        when(websiteFetcher.fetchPage(URL_TO_ANALYZE)).thenReturn(doc);
 
         analyzer.analyze(URL_TO_ANALYZE, 0);
 

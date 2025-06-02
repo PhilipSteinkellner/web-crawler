@@ -1,7 +1,6 @@
 package org.example;
 
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
+import org.example.website.Heading;
 
 import java.io.IOException;
 import java.util.List;
@@ -33,9 +32,9 @@ public class MarkdownRecorder {
         markdownWriter.write(String.format("%n%n%s link to %s%n", indentation, url));
     }
 
-    public void recordHeadings(Elements headings, String indentation) throws IOException {
+    public void recordHeadings(List<Heading> headings, String indentation) throws IOException {
         Pattern pattern = Pattern.compile("\\d+");
-        for (Element heading : headings) {
+        for (Heading heading : headings) {
             String headingPrefix = "#";
             Matcher matcher = pattern.matcher(heading.tagName());
             if (matcher.find()) {

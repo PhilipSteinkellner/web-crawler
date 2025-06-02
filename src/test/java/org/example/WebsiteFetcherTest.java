@@ -23,17 +23,17 @@ class WebsiteFetcherTest {
     }
 
     @Test
-    void fetch_returnsNull_whenUrlIsNull() {
-        assertNull(fetcher.fetch(null));
+    void fetch_Page_returnsNull_whenUrlIsNull() {
+        assertNull(fetcher.fetchPage(null));
     }
 
     @Test
-    void fetch_returnsNull_whenUrlIsEmpty() {
-        assertNull(fetcher.fetch(""));
+    void fetch_Page_returnsNull_whenUrlIsEmpty() {
+        assertNull(fetcher.fetchPage(""));
     }
 
     @Test
-    void fetch_returnsDocument_whenFetchSuccessful() throws IOException {
+    void fetch_returnsDocument_whenFetchPageSuccessful() throws IOException {
         Document mockDocument = mock(Document.class);
 
         try (MockedStatic<Jsoup> jsoupMock = mockStatic(Jsoup.class)) {
@@ -42,7 +42,7 @@ class WebsiteFetcherTest {
             jsoupMock.when(() -> Jsoup.connect(TEST_URL)).thenReturn(connectionMock);
             when(connectionMock.get()).thenReturn(mockDocument);
 
-            Document result = fetcher.fetch(TEST_URL);
+            Document result = fetcher.fetchPage(TEST_URL);
 
             assertNotNull(result);
             assertEquals(mockDocument, result);
@@ -52,7 +52,7 @@ class WebsiteFetcherTest {
     }
 
     @Test
-    void fetch_returnsNull_whenIOExceptionOccurs() throws IOException {
+    void fetch_Page_returnsNull_whenIOExceptionOccurs() throws IOException {
 
         try (MockedStatic<Jsoup> jsoupMock = mockStatic(Jsoup.class)) {
             Connection connectionMock = mock(Connection.class);
@@ -60,7 +60,7 @@ class WebsiteFetcherTest {
             jsoupMock.when(() -> Jsoup.connect(TEST_URL)).thenReturn(connectionMock);
             when(connectionMock.get()).thenThrow(new IOException("Connection failed"));
 
-            Document result = fetcher.fetch(TEST_URL);
+            Document result = fetcher.fetchPage(TEST_URL);
 
             assertNull(result);
             jsoupMock.verify(() -> Jsoup.connect(TEST_URL));
