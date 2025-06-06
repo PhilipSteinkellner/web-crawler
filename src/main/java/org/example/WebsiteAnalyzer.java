@@ -52,7 +52,7 @@ public class WebsiteAnalyzer {
     }
 
     public List<Link> analyze(String url, int depth) throws IOException {
-        if (url == null || url.isEmpty()) {
+        if (url == null || url.isEmpty() || depth > maxDepth) {
             return Collections.emptyList();
         }
 

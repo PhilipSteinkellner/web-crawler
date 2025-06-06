@@ -1,7 +1,8 @@
 package org.example;
 
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
+import org.example.website.Page;
+import org.example.website.Link;
+import org.example.website.Heading;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -9,9 +10,10 @@ import org.junit.jupiter.params.provider.CsvSource;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Collections;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.contains;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 class WebsiteAnalyzerTest {
@@ -41,68 +43,99 @@ class WebsiteAnalyzerTest {
     }
 
     @Test
-    void testAnalyze_withValidDomain_callsMarkdownWrite() throws IOException {
-        Document doc = Jsoup.parse("<html><head></head><body><a href='" + URL_TO_ANALYZE + "'>link</a></body></html>");
-        when(websiteFetcher.fetchPage(URL_TO_ANALYZE)).thenReturn(doc);
+    void testAnalyze_withValidDomain_returnsLinks() throws IOException {
+        Page mockPage = new Page(URL_TO_ANALYZE, 1, false,
+                Collections.emptyList(),
+                List.of(new Link("https://example.com/page1")));
+        when(websiteFetcher.fetchPage(URL_TO_ANALYZE, 1)).thenReturn(mockPage);
 
-        analyzer.analyze(URL_TO_ANALYZE, 1);
+        List<Link> result = analyzer.analyze(URL_TO_ANALYZE, 1);
 
-        verify(markdownRecorder, atLeastOnce()).recordLink(contains(URL_TO_ANALYZE), any());
+        assertEquals(1, result.size());
+        assertEquals("https://example.com/page1", result.get(0).href());
+        verify(websiteFetcher).fetchPage(URL_TO_ANALYZE, 1);
     }
 
     @Test
-    void testAnalyze_skipsInvalidUrl_noInteractions() throws IOException {
-        analyzer.analyze("ht!tp://invalid-url", 1);
+    void testAnalyze_skipsInvalidUrl_returnsEmptyList() throws IOException {
+        List<Link> result = analyzer.analyze("ht!tp://invalid-url", 1);
 
-        verifyNoInteractions(markdownRecorder);
-        verifyNoInteractions(markdownFileWriter);
+        assertTrue(result.isEmpty());
+        verifyNoInteractions(websiteFetcher);
     }
 
     @Test
     void testAnalyze_avoidsDuplicateUrls() throws IOException {
-        Document doc = Jsoup.parse("<html><a href='" + URL_TO_ANALYZE + "'></a></html>");
-        when(websiteFetcher.fetchPage(URL_TO_ANALYZE)).thenReturn(doc);
+        Page mockPage = new Page(URL_TO_ANALYZE, 1, false,
+                Collections.emptyList(),
+                List.of(new Link("https://example.com/page1")));
+        when(websiteFetcher.fetchPage(URL_TO_ANALYZE, 1)).thenReturn(mockPage);
 
         analyzer.analyze(URL_TO_ANALYZE, 1);
-        analyzer.analyze(URL_TO_ANALYZE, 1);
+        List<Link> result = analyzer.analyze(URL_TO_ANALYZE, 1);
 
-        verify(websiteFetcher, times(1)).fetchPage(URL_TO_ANALYZE);
+        assertTrue(result.isEmpty()); // Second call returns empty due to deduplication
+        verify(websiteFetcher, times(1)).fetchPage(URL_TO_ANALYZE, 1);
     }
 
     @Test
-    void testAnalyze_brokenLinkWritesError() throws IOException {
-        when(websiteFetcher.fetchPage(URL_TO_ANALYZE)).thenReturn(null);
+    void testAnalyze_brokenLinkReturnsEmptyList() throws IOException {
+        Page brokenPage = new Page(URL_TO_ANALYZE, 1, true,
+                Collections.emptyList(), Collections.emptyList());
+        when(websiteFetcher.fetchPage(URL_TO_ANALYZE, 1)).thenReturn(brokenPage);
 
-        analyzer.analyze(URL_TO_ANALYZE, 1);
+        List<Link> result = analyzer.analyze(URL_TO_ANALYZE, 1);
 
-        verify(markdownRecorder).recordBrokenLink(contains(URL_TO_ANALYZE), any());
+        assertTrue(result.isEmpty());
+        verify(websiteFetcher).fetchPage(URL_TO_ANALYZE, 1);
     }
 
     @Test
     void testAnalyze_returnsImmediatelyIfDepthExceedsMax() throws IOException {
         // Arrange: maxDepth is 1, so use depth 2
-        analyzer.analyze(URL_TO_ANALYZE, 2);
-        // Should not interact with fetcher or recorder
+        List<Link> result = analyzer.analyze(URL_TO_ANALYZE, 2);
+
+        assertTrue(result.isEmpty());
         verifyNoInteractions(websiteFetcher);
-        verifyNoInteractions(markdownRecorder);
     }
 
     @Test
-    void testAnalyze_withDepthZero_recordsHeadingsButNotLink() throws IOException {
-        Document doc = Jsoup.parse("<h1>Header</h1><a href=\"/next\"></a>");
-        when(websiteFetcher.fetchPage(URL_TO_ANALYZE)).thenReturn(doc);
+    void testAnalyze_withDepthZero_stillReturnsLinks() throws IOException {
+        Page mockPage = new Page(URL_TO_ANALYZE, 0, false,
+                List.of(new Heading("h1", "Header")),
+                List.of(new Link("https://example.com/next")));
+        when(websiteFetcher.fetchPage(URL_TO_ANALYZE, 0)).thenReturn(mockPage);
 
-        analyzer.analyze(URL_TO_ANALYZE, 0);
+        List<Link> result = analyzer.analyze(URL_TO_ANALYZE, 0);
 
-        verify(markdownRecorder).recordHeadings(any(), any());
-        verify(markdownRecorder, never()).recordLink(any(), any());
+        assertEquals(1, result.size());
+        assertEquals("https://example.com/next", result.get(0).href());
     }
 
     @Test
-    void testCreateMarkdownIndentation_variousDepths() {
-        assertEquals("", analyzer.createMarkdownIndentation(0));
-        assertEquals("-->", analyzer.createMarkdownIndentation(1));
-        assertEquals("---->", analyzer.createMarkdownIndentation(2));
+    void testWriteReport_callsRecorderForEachPage() throws IOException {
+        // Add some pages to the analyzer
+        Page page1 = new Page(URL_TO_ANALYZE, 0, false,
+                List.of(new Heading("h1", "Header")), Collections.emptyList());
+        Page page2 = new Page("https://example.com/broken", 1, true,
+                Collections.emptyList(), Collections.emptyList());
+
+        // Use reflection to add pages to the analyzer's internal list
+        try {
+            java.lang.reflect.Field pagesField = WebsiteAnalyzer.class.getDeclaredField("pages");
+            pagesField.setAccessible(true);
+            @SuppressWarnings("unchecked")
+            List<Page> pages = (List<Page>) pagesField.get(analyzer);
+            pages.add(page1);
+            pages.add(page2);
+
+            analyzer.writeReport();
+
+            verify(markdownRecorder).recordHeadings(any(), eq(""));
+            verify(markdownRecorder).recordBrokenLink("https://example.com/broken", "-->");
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            fail("Reflection failed: " + e.getMessage());
+        }
     }
 
     @ParameterizedTest
@@ -114,7 +147,27 @@ class WebsiteAnalyzerTest {
             "#section, ''"
     })
     void sanitizeUrl_shouldReturnExpected(String input, String expected) {
-        assertEquals(expected, analyzer.sanitizeUrl(input));
+        try {
+            // Use reflection to test the private method
+            java.lang.reflect.Method method = WebsiteAnalyzer.class.getDeclaredMethod("sanitizeUrl", String.class);
+            method.setAccessible(true);
+            assertEquals(expected, method.invoke(null, input));
+        } catch (Exception e) {
+            fail("Reflection failed: " + e.getMessage());
+        }
     }
 
+    @Test
+    void testCreateMarkdownIndentation_variousDepths() {
+        try {
+            // Use reflection to test the private method
+            java.lang.reflect.Method method = WebsiteAnalyzer.class.getDeclaredMethod("createMarkdownIndentation", int.class);
+            method.setAccessible(true);
+            assertEquals("", method.invoke(null, 0));
+            assertEquals("-->", method.invoke(null, 1));
+            assertEquals("---->", method.invoke(null, 2));
+        } catch (Exception e) {
+            fail("Reflection failed: " + e.getMessage());
+        }
+    }
 }

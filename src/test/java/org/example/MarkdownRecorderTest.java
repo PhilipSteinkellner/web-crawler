@@ -1,8 +1,6 @@
 package org.example;
 
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
+import org.example.website.Heading;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -12,6 +10,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.contains;
@@ -40,8 +39,14 @@ class MarkdownRecorderTest {
         verify(markdownWriter).write(expectedOutput);
     }
 
-    private Elements createHeadingElements(String html) {
-        return new Elements(Jsoup.parse(html).select("h1, h2, h3"));
+    private List<Heading> createHeadings(String... headingData) {
+        List<Heading> headings = new ArrayList<>();
+        for (int i = 0; i < headingData.length; i += 2) {
+            String tagName = headingData[i];
+            String text = headingData[i + 1];
+            headings.add(new Heading(tagName, text));
+        }
+        return headings;
     }
 
     @Nested
@@ -49,7 +54,7 @@ class MarkdownRecorderTest {
         @Test
         void writesInputArguments() throws Exception {
             var url = "URL";
-            var targetDomains = (List.of("Domain"));
+            var targetDomains = List.of("Domain");
             var depth = 2;
 
             markdownRecorder.recordInputArguments(url, targetDomains, depth);
@@ -103,14 +108,14 @@ class MarkdownRecorderTest {
     class RecordHeadingsTests {
         @Test
         void writesFormattedHeadings() throws IOException {
-            Elements headings = createHeadingElements("<h2>Heading</h2>");
+            List<Heading> headings = createHeadings("h2", "Heading");
             markdownRecorder.recordHeadings(headings, "-->");
             verify(markdownWriter).write(contains("## --> Heading"));
         }
 
         @Test
         void handlesEmptyIndentation() throws Exception {
-            Elements headings = createHeadingElements("<h1>Heading 1</h1><h3>Heading 3</h3>");
+            List<Heading> headings = createHeadings("h1", "Heading 1", "h3", "Heading 3");
             markdownRecorder.recordHeadings(headings, NO_INDENTATION);
             verify(markdownWriter).write(String.format("%n#  Heading 1"));
             verify(markdownWriter).write(String.format("%n###  Heading 3"));
@@ -118,23 +123,20 @@ class MarkdownRecorderTest {
 
         @Test
         void handlesEmptyHeadings() throws Exception {
-            markdownRecorder.recordHeadings(new Elements(), INDENTATION);
+            markdownRecorder.recordHeadings(new ArrayList<>(), INDENTATION);
             verify(markdownWriter, never()).write(anyString());
         }
 
         @Test
         void throwsIOException() throws Exception {
-            Elements headings = createHeadingElements("<h1>Heading 1</h1>");
+            List<Heading> headings = createHeadings("h1", "Heading 1");
             doThrow(new IOException("Write error")).when(markdownWriter).write(anyString());
             assertThrows(IOException.class, () -> markdownRecorder.recordHeadings(headings, INDENTATION));
         }
 
         @Test
         void writesHeadingWithCorrectPrefix() throws IOException {
-            String htmlContent = "<h2>Section Title</h2>";
-            Element headingElement = Jsoup.parse(htmlContent).selectFirst("h2");
-            assert headingElement != null;
-            Elements headings = new Elements(headingElement);
+            List<Heading> headings = createHeadings("h2", "Section Title");
             String indentation = "-->";
             markdownRecorder.recordHeadings(headings, indentation);
             verify(markdownWriter).write(String.format("%n## --> Section Title"));
@@ -142,13 +144,10 @@ class MarkdownRecorderTest {
 
         @Test
         void writesSingleHash_whenHeadingIsNotValid() throws IOException {
-            String htmlContent = "<p>Not a Heading</p>";
-            Element paragraphElement = Jsoup.parse(htmlContent).selectFirst("p");
-            assert paragraphElement != null;
-            Elements headings = new Elements(paragraphElement);
+            List<Heading> headings = createHeadings("p", "Not a Heading");
             String indentation = "  ";
             markdownRecorder.recordHeadings(headings, indentation);
-            verify(markdownWriter).write(String.format("%n# %s %s", indentation, paragraphElement.text()));
+            verify(markdownWriter).write(String.format("%n# %s %s", indentation, "Not a Heading"));
         }
     }
 }
