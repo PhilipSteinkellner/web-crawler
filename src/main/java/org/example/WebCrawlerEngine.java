@@ -10,11 +10,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class WebCrawlerEngine {
-    private final ExecutorService executor;
-    private final AtomicInteger activeTasks = new AtomicInteger();
-    private final Object taskLock = new Object();
-    private final WebsiteAnalyzer analyzer;
-    private final Logger logger = Logger.getInstance();
+    ExecutorService executor;
+    final AtomicInteger activeTasks = new AtomicInteger();
+    final Object taskLock = new Object();
+    final WebsiteAnalyzer analyzer;
+    final Logger logger = Logger.getInstance();
 
     public WebCrawlerEngine(int threadCount, WebsiteAnalyzer analyzer) {
         this.executor = Executors.newFixedThreadPool(threadCount);

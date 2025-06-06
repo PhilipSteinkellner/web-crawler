@@ -79,17 +79,16 @@ public class WebsiteAnalyzer {
 
     void writeReport() throws IOException {
         for (Page page : pages) {
-            String markdownIndentation = createMarkdownIndentation(page.depth());
-
-            if (page.depth() > 0) {
-                if (page.broken()) {
-                    markdownRecorder.recordBrokenLink(page.url(), markdownIndentation);
-                } else {
-                    markdownRecorder.recordLink(page.url(), markdownIndentation);
+            if (page == null) continue;
+            markdownRecorder.recordHeadings(page.headings(), createMarkdownIndentation(page.depth()));
+            if (page.broken()) {
+                markdownRecorder.recordBrokenLink(page.url(), createMarkdownIndentation(page.depth()));
+            } else {
+                for (Link link : page.links()) {
+                    markdownRecorder.recordLink(link.href(), createMarkdownIndentation(page.depth() + 1));
                 }
             }
-
-            markdownRecorder.recordHeadings(page.headings(), markdownIndentation);
         }
+
     }
 }

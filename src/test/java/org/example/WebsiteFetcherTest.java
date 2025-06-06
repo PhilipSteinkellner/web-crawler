@@ -1,5 +1,7 @@
 package org.example;
 
+import org.example.website.Heading;
+import org.example.website.Link;
 import org.example.website.Page;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
@@ -9,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 
 import java.io.IOException;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -78,6 +81,55 @@ class WebsiteFetcherTest {
             assertEquals(1, result.depth());
             jsoupMock.verify(() -> Jsoup.connect(TEST_URL));
             verify(connectionMock).get();
+        }
+    }
+
+    @Test
+    void fetchPage_extractsAllLinksAndHeadings() throws IOException {
+        String htmlContent = "<html>"
+                + "<body>"
+                + "<a href='https://example.com/page1'>Link1</a>"
+                + "<a href='/page2'>Link2</a>"
+                + "<h1>Main Heading</h1>"
+                + "<h2>Sub Heading</h2>"
+                + "</body></html>";
+
+        Document realDocument = Jsoup.parse(htmlContent, TEST_URL);
+
+        try (MockedStatic<Jsoup> jsoupMock = mockStatic(Jsoup.class)) {
+            Connection connectionMock = mock(Connection.class);
+            jsoupMock.when(() -> Jsoup.connect(TEST_URL)).thenReturn(connectionMock);
+            when(connectionMock.get()).thenReturn(realDocument);
+
+            Page result = fetcher.fetchPage(TEST_URL, 1);
+
+            List<Link> links = result.links();
+            assertEquals(2, links.size());
+            assertEquals("https://example.com/page1", links.get(0).href());
+            assertEquals("https://example.com/page2", links.get(1).href());
+
+            List<Heading> headings = result.headings();
+            assertEquals(2, headings.size());
+            assertEquals("h1", headings.get(0).tagName());
+            assertEquals("Main Heading", headings.get(0).text());
+            assertEquals("h2", headings.get(1).tagName());
+            assertEquals("Sub Heading", headings.get(1).text());
+        }
+    }
+
+    @Test
+    void fetchPage_handlesRelativeLinksCorrectly() throws IOException {
+        String htmlContent = "<a href='/about'>About</a>";
+        Document realDocument = Jsoup.parse(htmlContent, TEST_URL);
+
+        try (MockedStatic<Jsoup> jsoupMock = mockStatic(Jsoup.class)) {
+            Connection connectionMock = mock(Connection.class);
+            jsoupMock.when(() -> Jsoup.connect(TEST_URL)).thenReturn(connectionMock);
+            when(connectionMock.get()).thenReturn(realDocument);
+
+            Page result = fetcher.fetchPage(TEST_URL, 1);
+
+            assertEquals("https://example.com/about", result.links().get(0).href());
         }
     }
 }

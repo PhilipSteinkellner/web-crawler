@@ -19,14 +19,13 @@ import static org.mockito.Mockito.*;
 class WebsiteAnalyzerTest {
 
     public static final String URL_TO_ANALYZE = "https://example.com";
-    private MarkdownFileWriter markdownFileWriter;
     private WebsiteFetcher websiteFetcher;
     private MarkdownRecorder markdownRecorder;
     private WebsiteAnalyzer analyzer;
 
     @BeforeEach
     void setUp() {
-        markdownFileWriter = mock(MarkdownFileWriter.class);
+        MarkdownFileWriter markdownFileWriter = mock(MarkdownFileWriter.class);
         websiteFetcher = mock(WebsiteFetcher.class);
         markdownRecorder = mock(MarkdownRecorder.class);
 
@@ -74,7 +73,7 @@ class WebsiteAnalyzerTest {
         analyzer.analyze(URL_TO_ANALYZE, 1);
         List<Link> result = analyzer.analyze(URL_TO_ANALYZE, 1);
 
-        assertTrue(result.isEmpty()); // Second call returns empty due to deduplication
+        assertTrue(result.isEmpty());
         verify(websiteFetcher, times(1)).fetchPage(URL_TO_ANALYZE, 1);
     }
 
@@ -92,7 +91,6 @@ class WebsiteAnalyzerTest {
 
     @Test
     void testAnalyze_returnsImmediatelyIfDepthExceedsMax() throws IOException {
-        // Arrange: maxDepth is 1, so use depth 2
         List<Link> result = analyzer.analyze(URL_TO_ANALYZE, 2);
 
         assertTrue(result.isEmpty());
@@ -114,13 +112,11 @@ class WebsiteAnalyzerTest {
 
     @Test
     void testWriteReport_callsRecorderForEachPage() throws IOException {
-        // Add some pages to the analyzer
         Page page1 = new Page(URL_TO_ANALYZE, 0, false,
                 List.of(new Heading("h1", "Header")), Collections.emptyList());
         Page page2 = new Page("https://example.com/broken", 1, true,
                 Collections.emptyList(), Collections.emptyList());
 
-        // Use reflection to add pages to the analyzer's internal list
         try {
             java.lang.reflect.Field pagesField = WebsiteAnalyzer.class.getDeclaredField("pages");
             pagesField.setAccessible(true);
@@ -148,7 +144,6 @@ class WebsiteAnalyzerTest {
     })
     void sanitizeUrl_shouldReturnExpected(String input, String expected) {
         try {
-            // Use reflection to test the private method
             java.lang.reflect.Method method = WebsiteAnalyzer.class.getDeclaredMethod("sanitizeUrl", String.class);
             method.setAccessible(true);
             assertEquals(expected, method.invoke(null, input));
@@ -160,7 +155,6 @@ class WebsiteAnalyzerTest {
     @Test
     void testCreateMarkdownIndentation_variousDepths() {
         try {
-            // Use reflection to test the private method
             java.lang.reflect.Method method = WebsiteAnalyzer.class.getDeclaredMethod("createMarkdownIndentation", int.class);
             method.setAccessible(true);
             assertEquals("", method.invoke(null, 0));
@@ -169,5 +163,31 @@ class WebsiteAnalyzerTest {
         } catch (Exception e) {
             fail("Reflection failed: " + e.getMessage());
         }
+    }
+
+    @Test
+    void recordInputArguments_DelegatesToMarkdownRecorder_WithCorrectParameters() throws IOException {
+        String url = "https://example.com";
+        List<String> targetDomains = List.of("example.com");
+        int maxDepth = 2;
+
+        analyzer.recordInputArguments(url, targetDomains, maxDepth);
+
+        verify(markdownRecorder).recordInputArguments(url, targetDomains, maxDepth);
+    }
+
+    @Test
+    void startAnalysis_HandlesConcurrentCrawling_WithoutDuplicates() throws IOException {
+        String url = URL_TO_ANALYZE;
+        Page mockPage = new Page(url, 0, false,
+                Collections.emptyList(),
+                List.of(new Link(url + "/page1"), new Link(url + "/page2")));
+
+        when(websiteFetcher.fetchPage(any(), anyInt())).thenReturn(mockPage);
+
+        analyzer.startAnalysis(url);
+
+        verify(websiteFetcher, times(3)).fetchPage(any(), anyInt());
+        verify(markdownRecorder, atLeastOnce()).recordLink(any(), any());
     }
 }
