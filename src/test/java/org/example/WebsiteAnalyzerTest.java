@@ -42,7 +42,7 @@ class WebsiteAnalyzerTest {
     }
 
     @Test
-    void testAnalyze_withValidDomain_returnsLinks() throws IOException {
+    void testAnalyze_withValidDomain_returnsLinks() {
         Page mockPage = new Page(URL_TO_ANALYZE, 1, false,
                 Collections.emptyList(),
                 List.of(new Link("https://example.com/page1")));
@@ -56,7 +56,7 @@ class WebsiteAnalyzerTest {
     }
 
     @Test
-    void testAnalyze_skipsInvalidUrl_returnsEmptyList() throws IOException {
+    void testAnalyze_skipsInvalidUrl_returnsEmptyList() {
         List<Link> result = analyzer.analyze("ht!tp://invalid-url", 1);
 
         assertTrue(result.isEmpty());
@@ -64,7 +64,7 @@ class WebsiteAnalyzerTest {
     }
 
     @Test
-    void testAnalyze_avoidsDuplicateUrls() throws IOException {
+    void testAnalyze_avoidsDuplicateUrls() {
         Page mockPage = new Page(URL_TO_ANALYZE, 1, false,
                 Collections.emptyList(),
                 List.of(new Link("https://example.com/page1")));
@@ -78,7 +78,7 @@ class WebsiteAnalyzerTest {
     }
 
     @Test
-    void testAnalyze_brokenLinkReturnsEmptyList() throws IOException {
+    void testAnalyze_brokenLinkReturnsEmptyList() {
         Page brokenPage = new Page(URL_TO_ANALYZE, 1, true,
                 Collections.emptyList(), Collections.emptyList());
         when(websiteFetcher.fetchPage(URL_TO_ANALYZE, 1)).thenReturn(brokenPage);
@@ -90,7 +90,7 @@ class WebsiteAnalyzerTest {
     }
 
     @Test
-    void testAnalyze_returnsImmediatelyIfDepthExceedsMax() throws IOException {
+    void testAnalyze_returnsImmediatelyIfDepthExceedsMax() {
         List<Link> result = analyzer.analyze(URL_TO_ANALYZE, 2);
 
         assertTrue(result.isEmpty());
@@ -98,7 +98,7 @@ class WebsiteAnalyzerTest {
     }
 
     @Test
-    void testAnalyze_withDepthZero_stillReturnsLinks() throws IOException {
+    void testAnalyze_withDepthZero_stillReturnsLinks() {
         Page mockPage = new Page(URL_TO_ANALYZE, 0, false,
                 List.of(new Heading("h1", "Header")),
                 List.of(new Link("https://example.com/next")));

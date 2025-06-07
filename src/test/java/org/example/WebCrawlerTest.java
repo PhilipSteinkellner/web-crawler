@@ -40,7 +40,7 @@ class WebCrawlerTest {
     void call_writesInputArgumentsAndTriggersAnalysis() throws Exception {
         WebCrawler crawler = createCrawler(List.of(EXAMPLE_COM));
 
-        try (MockedConstruction<MarkdownFileWriter> markdownWriterMock = mockConstruction(MarkdownFileWriter.class);
+        try (MockedConstruction<MarkdownFileWriter> ignored = mockConstruction(MarkdownFileWriter.class);
              MockedConstruction<WebsiteAnalyzer> analyzerMock = mockConstruction(WebsiteAnalyzer.class,
                      (mockAnalyzer, context) -> {
                          doNothing().when(mockAnalyzer).recordInputArguments(anyString(), anyList(), anyInt());
@@ -49,7 +49,6 @@ class WebCrawlerTest {
         ) {
             Integer result = crawler.call();
 
-            // Check that at least one instance was created
             assertFalse(analyzerMock.constructed().isEmpty());
             WebsiteAnalyzer analyzer = analyzerMock.constructed().get(0);
 
@@ -63,8 +62,8 @@ class WebCrawlerTest {
     void call_propagatesIOExceptionFromAnalysis() {
         WebCrawler crawler = createCrawler(List.of(EXAMPLE_COM));
 
-        try (MockedConstruction<MarkdownFileWriter> markdownWriterMock = mockConstruction(MarkdownFileWriter.class);
-             MockedConstruction<WebsiteAnalyzer> analyzerMock = mockConstruction(WebsiteAnalyzer.class,
+        try (MockedConstruction<MarkdownFileWriter> ignored1 = mockConstruction(MarkdownFileWriter.class);
+             MockedConstruction<WebsiteAnalyzer> ignored = mockConstruction(WebsiteAnalyzer.class,
                      (mockAnalyzer, context) -> {
                          doNothing().when(mockAnalyzer).recordInputArguments(anyString(), anyList(), anyInt());
                          doThrow(new IOException("Analysis failed")).when(mockAnalyzer).startAnalysis(anyString());

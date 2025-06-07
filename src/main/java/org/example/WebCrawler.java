@@ -38,9 +38,6 @@ public class WebCrawler implements Callable<Integer> {
         }
     }
 
-
-
-
     public String getUrl() {
         return url;
     }

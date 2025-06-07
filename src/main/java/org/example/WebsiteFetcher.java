@@ -15,8 +15,6 @@ import java.util.List;
 
 public class WebsiteFetcher {
 
-    private final Logger logger = Logger.getInstance();
-
     public Page fetchPage(String url, int depth) {
         if (url == null || url.trim().isEmpty()) {
             return new Page(url, depth, true, Collections.emptyList(), Collections.emptyList());

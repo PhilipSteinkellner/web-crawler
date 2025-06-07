@@ -12,7 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class WebsiteAnalyzer {
 
-    private final static int THREAD_COUNT = 10;
+    private static final int THREAD_COUNT = 10;
     private final UrlValidator urlValidator;
     private final int maxDepth;
     private final Set<String> seenUrls = ConcurrentHashMap.newKeySet();
@@ -51,7 +51,7 @@ public class WebsiteAnalyzer {
         writeReport();
     }
 
-    public List<Link> analyze(String url, int depth) throws IOException {
+    public List<Link> analyze(String url, int depth) {
         if (url == null || url.isEmpty() || depth > maxDepth) {
             return Collections.emptyList();
         }
