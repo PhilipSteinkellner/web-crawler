@@ -9,7 +9,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class WebCrawlerEngine {
-    ExecutorService executor;
+    final ExecutorService executor;
     final AtomicInteger activeTasks = new AtomicInteger();
     final Object taskLock = new Object();
     final WebsiteAnalyzer analyzer;

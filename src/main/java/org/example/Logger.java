@@ -32,7 +32,7 @@ public class Logger {
     }
 
     public enum Level {
-        DEBUG, INFO, WARN, ERROR
+        DEBUG, INFO, ERROR
     }
 
     private static final class InstanceHolder {
