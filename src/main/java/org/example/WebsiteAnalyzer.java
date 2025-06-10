@@ -35,7 +35,8 @@ public class WebsiteAnalyzer {
     public void startAnalysis(String url) throws IOException {
         logger.info("Starting analysis... ");
         WebCrawlerEngine crawler = new WebCrawlerEngine(THREAD_COUNT, this);
-        crawler.crawl(url, 0, maxDepth);
+        String urlSanitized = Utilities.sanitizeUrl(url);
+        crawler.crawl(urlSanitized, 0, maxDepth);
         logger.info("Finished analysis. Analyzed %d pages.", pages.size());
         writeReport();
     }
@@ -44,8 +45,6 @@ public class WebsiteAnalyzer {
         if (url == null || url.isEmpty() || depth > maxDepth) {
             return Collections.emptyList();
         }
-
-        url = Utilities.sanitizeUrl(url);
 
         if (!seenUrls.add(url)) return Collections.emptyList();
         if (depth > 0 && !urlValidator.isValid(url)) return Collections.emptyList();
@@ -67,14 +66,22 @@ public class WebsiteAnalyzer {
     }
 
     void writeReport() throws IOException {
-        for (Page page : pages) {
-            if (page == null) continue;
-            markdownRecorder.recordHeadings(page.headings(), Utilities.createMarkdownIndentation(page.depth()));
-            if (page.broken()) {
-                markdownRecorder.recordBrokenLink(page.url(), Utilities.createMarkdownIndentation(page.depth()));
-            } else {
-                for (Link link : page.links()) {
-                    markdownRecorder.recordLink(link.href(), Utilities.createMarkdownIndentation(page.depth() + 1));
+        Page rootPage = pages.removeFirst();
+        writePageResult(rootPage);
+    }
+
+    private void writePageResult(Page page) throws IOException {
+        if (page == null) return;
+        markdownRecorder.recordHeadings(page.headings(), Utilities.createMarkdownIndentation(page.depth()));
+        if (page.broken()) {
+            markdownRecorder.recordBrokenLink(page.url(), Utilities.createMarkdownIndentation(page.depth()));
+        } else {
+            for (Link link : page.links()) {
+                markdownRecorder.recordLink(link.href(), Utilities.createMarkdownIndentation(page.depth() + 1));
+                int linkedPageIndex = Utilities.indexOf(pages, item -> item.url().equals(link.href()) && item.depth() == page.depth() + 1);
+                if (linkedPageIndex > -1) {
+                    Page linkedPage = pages.remove(linkedPageIndex);
+                    writePageResult(linkedPage);
                 }
             }
         }

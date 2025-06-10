@@ -110,7 +110,7 @@ class WebsiteAnalyzerTest {
     @Test
     void testWriteReport_callsRecorderForEachPage() throws IOException {
         Page page1 = new Page(URL_TO_ANALYZE, 0, false,
-                List.of(new Heading("h1", "Header")), Collections.emptyList());
+                List.of(new Heading("h1", "Header")), List.of(new Link("https://example.com/broken")));
         Page page2 = new Page("https://example.com/broken", 1, true,
                 Collections.emptyList(), Collections.emptyList());
 

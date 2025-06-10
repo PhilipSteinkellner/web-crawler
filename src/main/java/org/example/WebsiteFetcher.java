@@ -35,7 +35,7 @@ public class WebsiteFetcher {
             String href = docLink.attr("abs:href");
             String sanitizedUrl = Utilities.sanitizeUrl(href);
             if (websiteLinks.stream().noneMatch(l -> l.href().equals(sanitizedUrl))) {
-                websiteLinks.add(new Link(href));
+                websiteLinks.add(new Link(sanitizedUrl));
             }
         }
 
