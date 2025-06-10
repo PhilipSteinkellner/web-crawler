@@ -28,17 +28,6 @@ public class WebsiteAnalyzer {
         this.maxDepth = maxDepth;
     }
 
-    private static String sanitizeUrl(String url) {
-        if (url.contains("#")) {
-            return url.substring(0, url.indexOf("#"));
-        }
-        return url;
-    }
-
-    private static String createMarkdownIndentation(int depth) {
-        return "--".repeat(depth) + (depth > 0 ? ">" : "");
-    }
-
     public void recordInputArguments(String url, List<String> targetDomains, int maxDepth) throws IOException {
         this.markdownRecorder.recordInputArguments(url, targetDomains, maxDepth);
     }
@@ -56,7 +45,7 @@ public class WebsiteAnalyzer {
             return Collections.emptyList();
         }
 
-        url = sanitizeUrl(url);
+        url = Utilities.sanitizeUrl(url);
 
         if (!seenUrls.add(url)) return Collections.emptyList();
         if (depth > 0 && !urlValidator.isValid(url)) return Collections.emptyList();
@@ -64,7 +53,7 @@ public class WebsiteAnalyzer {
         Page page = websiteFetcher.fetchPage(url, depth);
         pages.add(page);
 
-        String markdownIndentation = createMarkdownIndentation(page.depth());
+        String markdownIndentation = Utilities.createMarkdownIndentation(page.depth());
 
         if (page.broken()) {
             logger.debug("%s %s: broken link", markdownIndentation, url);
@@ -80,12 +69,12 @@ public class WebsiteAnalyzer {
     void writeReport() throws IOException {
         for (Page page : pages) {
             if (page == null) continue;
-            markdownRecorder.recordHeadings(page.headings(), createMarkdownIndentation(page.depth()));
+            markdownRecorder.recordHeadings(page.headings(), Utilities.createMarkdownIndentation(page.depth()));
             if (page.broken()) {
-                markdownRecorder.recordBrokenLink(page.url(), createMarkdownIndentation(page.depth()));
+                markdownRecorder.recordBrokenLink(page.url(), Utilities.createMarkdownIndentation(page.depth()));
             } else {
                 for (Link link : page.links()) {
-                    markdownRecorder.recordLink(link.href(), createMarkdownIndentation(page.depth() + 1));
+                    markdownRecorder.recordLink(link.href(), Utilities.createMarkdownIndentation(page.depth() + 1));
                 }
             }
         }

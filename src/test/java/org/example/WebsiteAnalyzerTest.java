@@ -1,16 +1,14 @@
 package org.example;
 
-import org.example.website.Page;
-import org.example.website.Link;
 import org.example.website.Heading;
+import org.example.website.Link;
+import org.example.website.Page;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Collections;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -129,37 +127,6 @@ class WebsiteAnalyzerTest {
             verify(markdownRecorder).recordHeadings(any(), eq(""));
             verify(markdownRecorder).recordBrokenLink("https://example.com/broken", "-->");
         } catch (NoSuchFieldException | IllegalAccessException e) {
-            fail("Reflection failed: " + e.getMessage());
-        }
-    }
-
-    @ParameterizedTest
-    @CsvSource({
-            "https://example.com/page#section, https://example.com/page",
-            "https://example.com/page, https://example.com/page",
-            "https://example.com/page#, https://example.com/page",
-            "'', ''",
-            "#section, ''"
-    })
-    void sanitizeUrl_shouldReturnExpected(String input, String expected) {
-        try {
-            java.lang.reflect.Method method = WebsiteAnalyzer.class.getDeclaredMethod("sanitizeUrl", String.class);
-            method.setAccessible(true);
-            assertEquals(expected, method.invoke(null, input));
-        } catch (Exception e) {
-            fail("Reflection failed: " + e.getMessage());
-        }
-    }
-
-    @Test
-    void testCreateMarkdownIndentation_variousDepths() {
-        try {
-            java.lang.reflect.Method method = WebsiteAnalyzer.class.getDeclaredMethod("createMarkdownIndentation", int.class);
-            method.setAccessible(true);
-            assertEquals("", method.invoke(null, 0));
-            assertEquals("-->", method.invoke(null, 1));
-            assertEquals("---->", method.invoke(null, 2));
-        } catch (Exception e) {
             fail("Reflection failed: " + e.getMessage());
         }
     }

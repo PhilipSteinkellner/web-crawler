@@ -33,7 +33,10 @@ public class WebsiteFetcher {
 
         for (Element docLink : docLinks) {
             String href = docLink.attr("abs:href");
-            websiteLinks.add(new Link(href));
+            String sanitizedUrl = Utilities.sanitizeUrl(href);
+            if (websiteLinks.stream().noneMatch(l -> l.href().equals(sanitizedUrl))) {
+                websiteLinks.add(new Link(href));
+            }
         }
 
         Elements docHeadings = doc.select("h1, h2, h3, h4, h5, h6");
