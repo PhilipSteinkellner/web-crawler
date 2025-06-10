@@ -156,4 +156,10 @@ class WebsiteAnalyzerTest {
         verify(websiteFetcher, times(3)).fetchPage(any(), anyInt());
         verify(markdownRecorder, atLeastOnce()).recordLink(any(), any());
     }
+
+    @Test
+    void writeReport_HandlesEmptyPageList() {
+        analyzer.pages.clear();
+        assertDoesNotThrow(() -> analyzer.writeReport());
+    }
 }

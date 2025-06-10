@@ -1,4 +1,4 @@
-package org.example;
+package org.example.utils;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -23,6 +23,10 @@ public class Logger {
         log(Level.DEBUG, message, args);
     }
 
+    public void warn(String message, Object... args) {
+        log(Level.WARN, message, args);
+    }
+
     public void info(String message, Object... args) {
         log(Level.INFO, message, args);
     }
@@ -32,7 +36,7 @@ public class Logger {
     }
 
     public enum Level {
-        DEBUG, INFO, ERROR
+        DEBUG, INFO,WARN, ERROR
     }
 
     private static final class InstanceHolder {

@@ -1,14 +1,23 @@
-package org.example;
+package org.example.utils;
 
 import java.util.List;
 import java.util.function.Predicate;
 
 public class Utilities {
+
+    private Utilities() {
+        throw new UnsupportedOperationException("Utility class should not be instantiated");
+    }
+
+    /**
+     * Removes the fragment part (after '#') from a URL string or returns an empty string if input is null or empty.
+     */
     public static String sanitizeUrl(String url) {
-        if (url.contains("#")) {
-            return url.substring(0, url.indexOf("#"));
+        if (url == null || url.isEmpty()) {
+            return "";
         }
-        return url;
+        int hashIndex = url.indexOf('#');
+        return hashIndex > -1 ? url.substring(0, hashIndex) : url;
     }
 
     public static String createMarkdownIndentation(int depth) {

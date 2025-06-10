@@ -1,5 +1,6 @@
 package org.example;
 
+import org.example.utils.Utilities;
 import org.example.website.Heading;
 import org.example.website.Link;
 import org.example.website.Page;

@@ -1,5 +1,7 @@
 package org.example;
 
+import org.example.utils.Logger;
+
 import java.net.URI;
 import java.util.List;
 

@@ -1,11 +1,11 @@
 package org.example;
 
+import org.example.utils.Utilities;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
 
 class UtilitiesTest {
 
@@ -17,26 +17,22 @@ class UtilitiesTest {
             "'', ''",
             "#section, ''"
     })
+
     void sanitizeUrl_shouldReturnExpected(String input, String expected) {
-        try {
-            java.lang.reflect.Method method = Utilities.class.getDeclaredMethod("sanitizeUrl", String.class);
-            method.setAccessible(true);
-            assertEquals(expected, method.invoke(null, input));
-        } catch (Exception e) {
-            fail("Reflection failed: " + e.getMessage());
-        }
+        assertEquals(expected, Utilities.sanitizeUrl(input));
     }
 
     @Test
     void testCreateMarkdownIndentation_variousDepths() {
-        try {
-            java.lang.reflect.Method method = Utilities.class.getDeclaredMethod("createMarkdownIndentation", int.class);
-            method.setAccessible(true);
-            assertEquals("", method.invoke(null, 0));
-            assertEquals("-->", method.invoke(null, 1));
-            assertEquals("---->", method.invoke(null, 2));
-        } catch (Exception e) {
-            fail("Reflection failed: " + e.getMessage());
-        }
+        assertEquals("", Utilities.createMarkdownIndentation(0));
+        assertEquals("-->", Utilities.createMarkdownIndentation(1));
+        assertEquals("---->", Utilities.createMarkdownIndentation(2));
     }
+
+    @Test
+    void sanitizeUrl_HandlesNullInput() {
+        String result = Utilities.sanitizeUrl(null);
+        assertEquals("", result);
+    }
+
 }

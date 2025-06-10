@@ -1,5 +1,6 @@
 package org.example;
 
+import org.example.utils.Logger;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;

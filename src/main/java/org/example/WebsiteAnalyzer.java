@@ -1,5 +1,7 @@
 package org.example;
 
+import org.example.utils.Logger;
+import org.example.utils.Utilities;
 import org.example.website.Link;
 import org.example.website.Page;
 
@@ -16,7 +18,7 @@ public class WebsiteAnalyzer {
     private final UrlValidator urlValidator;
     private final int maxDepth;
     private final Set<String> seenUrls = ConcurrentHashMap.newKeySet();
-    private final List<Page> pages = Collections.synchronizedList(new ArrayList<>());
+    final List<Page> pages = Collections.synchronizedList(new ArrayList<>());
     private final Logger logger = Logger.getInstance();
     protected WebsiteFetcher websiteFetcher;
     protected MarkdownRecorder markdownRecorder;
@@ -66,9 +68,15 @@ public class WebsiteAnalyzer {
     }
 
     void writeReport() throws IOException {
-        Page rootPage = pages.removeFirst();
+        if (pages.isEmpty()) {
+            logger.warn("No pages analyzed - report skipped");
+            return;
+        }
+
+        Page rootPage = pages.remove(0);
         writePageResult(rootPage);
     }
+
 
     private void writePageResult(Page page) throws IOException {
         if (page == null) return;
