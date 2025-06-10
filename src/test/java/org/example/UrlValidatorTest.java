@@ -50,7 +50,7 @@ class UrlValidatorTest {
     @Test
     void testEmptyUrl() {
         assertFalse(urlValidator.isValid(""));
-        assertFalse(urlValidator.isValid("   ")); // Nur Leerzeichen
+        assertFalse(urlValidator.isValid("   "));
     }
 
     @Test

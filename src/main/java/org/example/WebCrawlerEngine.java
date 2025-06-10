@@ -2,7 +2,6 @@ package org.example;
 
 import org.example.website.Link;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -10,11 +9,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class WebCrawlerEngine {
-    private final ExecutorService executor;
-    private final AtomicInteger activeTasks = new AtomicInteger();
-    private final Object taskLock = new Object();
-    private final WebsiteAnalyzer analyzer;
-    private final Logger logger = Logger.getInstance();
+    final ExecutorService executor;
+    final AtomicInteger activeTasks = new AtomicInteger();
+    final Object taskLock = new Object();
+    final WebsiteAnalyzer analyzer;
 
     public WebCrawlerEngine(int threadCount, WebsiteAnalyzer analyzer) {
         this.executor = Executors.newFixedThreadPool(threadCount);
@@ -56,12 +54,10 @@ public class WebCrawlerEngine {
                         submitRecursive(link.href(), depth + 1, maxDepth);
                     }
                 }
-            } catch (IOException e) {
-                logger.error("IOException analyzing %s: %s", url, e.getMessage());
             } finally {
                 if (activeTasks.decrementAndGet() == 0) {
                     synchronized (taskLock) {
-                        taskLock.notify();
+                        taskLock.notifyAll();
                     }
                 }
             }

@@ -12,7 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class WebsiteAnalyzer {
 
-    private final static int THREAD_COUNT = 10;
+    private static final int THREAD_COUNT = 10;
     private final UrlValidator urlValidator;
     private final int maxDepth;
     private final Set<String> seenUrls = ConcurrentHashMap.newKeySet();
@@ -51,8 +51,8 @@ public class WebsiteAnalyzer {
         writeReport();
     }
 
-    public List<Link> analyze(String url, int depth) throws IOException {
-        if (url == null || url.isEmpty()) {
+    public List<Link> analyze(String url, int depth) {
+        if (url == null || url.isEmpty() || depth > maxDepth) {
             return Collections.emptyList();
         }
 
@@ -79,17 +79,16 @@ public class WebsiteAnalyzer {
 
     void writeReport() throws IOException {
         for (Page page : pages) {
-            String markdownIndentation = createMarkdownIndentation(page.depth());
-
-            if (page.depth() > 0) {
-                if (page.broken()) {
-                    markdownRecorder.recordBrokenLink(page.url(), markdownIndentation);
-                } else {
-                    markdownRecorder.recordLink(page.url(), markdownIndentation);
+            if (page == null) continue;
+            markdownRecorder.recordHeadings(page.headings(), createMarkdownIndentation(page.depth()));
+            if (page.broken()) {
+                markdownRecorder.recordBrokenLink(page.url(), createMarkdownIndentation(page.depth()));
+            } else {
+                for (Link link : page.links()) {
+                    markdownRecorder.recordLink(link.href(), createMarkdownIndentation(page.depth() + 1));
                 }
             }
-
-            markdownRecorder.recordHeadings(page.headings(), markdownIndentation);
         }
+
     }
 }

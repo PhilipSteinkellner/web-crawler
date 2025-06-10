@@ -7,8 +7,7 @@ import picocli.CommandLine;
 import java.io.IOException;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class WebCrawlerTest {
@@ -41,29 +40,34 @@ class WebCrawlerTest {
     void call_writesInputArgumentsAndTriggersAnalysis() throws Exception {
         WebCrawler crawler = createCrawler(List.of(EXAMPLE_COM));
 
-        try (MockedConstruction<MarkdownFileWriter> markdownWriterMock = mockConstruction(MarkdownFileWriter.class);
+        try (MockedConstruction<MarkdownFileWriter> ignored = mockConstruction(MarkdownFileWriter.class);
              MockedConstruction<WebsiteAnalyzer> analyzerMock = mockConstruction(WebsiteAnalyzer.class,
-                     (mockAnalyzer, context) -> doNothing().when(mockAnalyzer).analyze(anyString(), anyInt()))
+                     (mockAnalyzer, context) -> {
+                         doNothing().when(mockAnalyzer).recordInputArguments(anyString(), anyList(), anyInt());
+                         doNothing().when(mockAnalyzer).startAnalysis(anyString());
+                     })
         ) {
             Integer result = crawler.call();
 
-            MarkdownFileWriter writer = markdownWriterMock.constructed().get(0);
+            assertFalse(analyzerMock.constructed().isEmpty());
             WebsiteAnalyzer analyzer = analyzerMock.constructed().get(0);
 
-
             verify(analyzer).recordInputArguments(TEST_URL, List.of(EXAMPLE_COM), TEST_DEPTH);
-            verify(analyzer).analyze(TEST_URL, 0);
+            verify(analyzer).startAnalysis(TEST_URL);
             assertEquals(0, result);
         }
     }
 
     @Test
-    void call_propagatesIOExceptionFromWriter() {
+    void call_propagatesIOExceptionFromAnalysis() {
         WebCrawler crawler = createCrawler(List.of(EXAMPLE_COM));
 
-        try (MockedConstruction<MarkdownFileWriter> markdownWriterMock = mockConstruction(
-                MarkdownFileWriter.class,
-                (mockWriter, context) -> doThrow(new IOException("write failed")).when(mockWriter).write(anyString()))
+        try (MockedConstruction<MarkdownFileWriter> ignored1 = mockConstruction(MarkdownFileWriter.class);
+             MockedConstruction<WebsiteAnalyzer> ignored = mockConstruction(WebsiteAnalyzer.class,
+                     (mockAnalyzer, context) -> {
+                         doNothing().when(mockAnalyzer).recordInputArguments(anyString(), anyList(), anyInt());
+                         doThrow(new IOException("Analysis failed")).when(mockAnalyzer).startAnalysis(anyString());
+                     })
         ) {
             assertThrows(IOException.class, crawler::call);
         }

@@ -15,15 +15,14 @@ import java.util.List;
 
 public class WebsiteFetcher {
 
-    private final Logger logger = Logger.getInstance();
-
     public Page fetchPage(String url, int depth) {
+        if (url == null || url.trim().isEmpty()) {
+            return new Page(url, depth, true, Collections.emptyList(), Collections.emptyList());
+        }
         try {
             Document doc = Jsoup.connect(url).get();
-
             return buildPage(url, depth, doc);
         } catch (IOException e) {
-            logger.debug("broken link %s", url);
             return new Page(url, depth, true, Collections.emptyList(), Collections.emptyList());
         }
     }

@@ -4,6 +4,7 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -24,20 +25,16 @@ public class WebCrawler implements Callable<Integer> {
     private final Logger logger = Logger.getInstance();
 
     @Override
-    public Integer call() {
+    public Integer call() throws IOException {
+        MarkdownFileWriter markdownFileWriter = new MarkdownFileWriter("report.md");
         try {
-            MarkdownFileWriter markdownFileWriter = new MarkdownFileWriter("report.md");
-
             WebsiteAnalyzer websiteAnalyzer = new WebsiteAnalyzer(targetDomains, maxDepth, markdownFileWriter);
-
             websiteAnalyzer.recordInputArguments(url, targetDomains, maxDepth);
-
             websiteAnalyzer.startAnalysis(url);
-
             return 0;
         } catch (Exception e) {
-            logger.error("WebCrawler ran into an exception: %s", e.getMessage());
-            return 1;
+            logger.error("WebCrawler failed: %s", e.getMessage());
+            throw e;
         }
     }
 

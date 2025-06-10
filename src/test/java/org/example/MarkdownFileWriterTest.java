@@ -12,6 +12,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class MarkdownFileWriterTest {
 
     private static final String TEST_FILE_PATH = "test_output.txt";
+    private static final Path TEST_PATH = Path.of(TEST_FILE_PATH);
     private MarkdownFileWriter markdownFileWriter;
 
     @BeforeEach
@@ -21,10 +22,9 @@ class MarkdownFileWriterTest {
 
     @Test
     void testConstructorCreatesFile() throws IOException {
-        Path filePath = Path.of(TEST_FILE_PATH);
-        assertTrue(Files.exists(filePath), "File should be created on construction");
+        assertTrue(Files.exists(TEST_PATH));
 
-        Files.delete(filePath);
+        Files.delete(TEST_PATH);
     }
 
     @Test
@@ -34,33 +34,33 @@ class MarkdownFileWriterTest {
 
         markdownFileWriter.write(content1);
 
-        String fileContent = Files.readString(Path.of(TEST_FILE_PATH));
-        assertTrue(fileContent.contains(content1), "File should contain the first written content");
+        String fileContent = Files.readString(TEST_PATH);
+        assertTrue(fileContent.contains(content1));
 
         markdownFileWriter.write(content2);
 
-        fileContent = Files.readString(Path.of(TEST_FILE_PATH));
-        assertTrue(fileContent.contains(content1), "File should still contain the first content");
-        assertTrue(fileContent.contains(content2), "File should contain the second content");
+        fileContent = Files.readString(TEST_PATH);
+        assertTrue(fileContent.contains(content1));
+        assertTrue(fileContent.contains(content2));
 
-        Files.delete(Path.of(TEST_FILE_PATH));
+        Files.delete(TEST_PATH);
     }
 
     @Test
     void testWriteCreatesFileIfNotExists() throws IOException {
-        Files.deleteIfExists(Path.of(TEST_FILE_PATH));
+        Files.deleteIfExists(TEST_PATH);
 
-        assertFalse(Files.exists(Path.of(TEST_FILE_PATH)), "File should not exist before writing");
+        assertFalse(Files.exists(TEST_PATH));
 
         markdownFileWriter.write("Some initial content");
 
-        assertTrue(Files.exists(Path.of(TEST_FILE_PATH)), "File should be created after writing content");
+        assertTrue(Files.exists(TEST_PATH));
 
-        Files.delete(Path.of(TEST_FILE_PATH));
+        Files.delete(TEST_PATH);
     }
 
     @Test
     void testWriteThrowsIOException() {
-        assertThrows(IOException.class, () -> new MarkdownFileWriter("/invalid_path/test_output.txt"), "IOException should be thrown");
+        assertThrows(IOException.class, () -> new MarkdownFileWriter("/invalid_path/test_output.txt"));
     }
 }

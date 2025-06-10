@@ -27,16 +27,12 @@ public class Logger {
         log(Level.INFO, message, args);
     }
 
-    public void warn(String message, Object... args) {
-        log(Level.WARN, message, args);
-    }
-
     public void error(String message, Object... args) {
         log(Level.ERROR, message, args);
     }
 
     public enum Level {
-        DEBUG, INFO, WARN, ERROR
+        DEBUG, INFO, ERROR
     }
 
     private static final class InstanceHolder {
